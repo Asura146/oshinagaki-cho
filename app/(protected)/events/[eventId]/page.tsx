@@ -2,13 +2,14 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/db';
-import { events, circles, items } from '@/lib/db/schema';
+import { events, circles, items, oshinagakiImages } from '@/lib/db/schema';
 import { eq, and, inArray } from 'drizzle-orm';
 import { ArrowLeft, Calendar, MapPin, AtSign, Store } from 'lucide-react';
 import { CreateCircleDialog } from '@/components/CreateCircleDialog';
 import { CreateItemDialog } from '@/components/CreateItemDialog';
 import { ItemRow } from '@/components/ItemRow';
 import { CircleActionMenu } from '@/components/CircleActionMenu';
+import { OshinagakiGallery } from '@/components/OshinagakiGallery';
 
 interface EventDetailPageProps {
   params: Promise<{
@@ -58,6 +59,15 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
           .where(and(inArray(items.circleId, circleIds), eq(items.userId, user.id)))
       : [];
 
+  // お品書き画像の取得
+  const allOshinagakiImages =
+    circleIds.length > 0
+      ? await db
+          .select()
+          .from(oshinagakiImages)
+          .where(and(inArray(oshinagakiImages.circleId, circleIds), eq(oshinagakiImages.userId, user.id)))
+      : [];
+
   // 集計計算
   let totalBudget = 0;
   let spentBudget = 0;
@@ -70,13 +80,23 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
     }
   });
 
-  // サークルごとにアイテムをグループ化
+  // サークルごとにアイテムとお品書き画像をグループ化
   const circleItemsMap = new Map<string, typeof itemList>();
-  circleList.forEach((c) => circleItemsMap.set(c.id, []));
+  const circleOshinagakiImagesMap = new Map<string, typeof allOshinagakiImages>();
+  circleList.forEach((c) => {
+    circleItemsMap.set(c.id, []);
+    circleOshinagakiImagesMap.set(c.id, []);
+  });
   itemList.forEach((item) => {
     const list = circleItemsMap.get(item.circleId);
     if (list) {
       list.push(item);
+    }
+  });
+  allOshinagakiImages.forEach((img) => {
+    const list = circleOshinagakiImagesMap.get(img.circleId);
+    if (list) {
+      list.push(img);
     }
   });
 
@@ -160,29 +180,43 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                   >
                     {/* サークルヘッダー */}
                     <div className="flex items-start justify-between border-b border-zinc-100 pb-3 dark:border-zinc-800">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          {circle.space && (
-                            <span className="inline-flex items-center rounded border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-xs font-semibold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
-                              <MapPin className="mr-1 h-3 w-3" />
-                              {circle.space}
-                            </span>
-                          )}
-                          <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-50">
-                            {circle.name}
-                          </h3>
-                        </div>
-                        {circle.twitterId && (
-                          <div className="flex items-center text-xs text-zinc-400 dark:text-zinc-500">
-                            <AtSign className="mr-1 h-3 w-3" />
-                            <span>{circle.twitterId}</span>
+                      <div className="flex items-center gap-2.5">
+                        {circle.avatarPath ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={circle.avatarPath}
+                            alt={circle.name}
+                            className="h-9 w-9 rounded-full object-cover border border-zinc-200 dark:border-zinc-700 flex-shrink-0"
+                          />
+                        ) : (
+                          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-500 font-semibold text-xs flex-shrink-0 border border-zinc-200 dark:border-zinc-700">
+                            {circle.name.substring(0, 1)}
                           </div>
                         )}
-                        {circle.memo && (
-                          <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                            {circle.memo}
-                          </p>
-                        )}
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-2">
+                            {circle.space && (
+                              <span className="inline-flex items-center rounded border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-xs font-semibold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                                <MapPin className="mr-1 h-3 w-3" />
+                                {circle.space}
+                              </span>
+                            )}
+                            <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-50">
+                              {circle.name}
+                            </h3>
+                          </div>
+                          {circle.twitterId && (
+                            <div className="flex items-center text-xs text-zinc-400 dark:text-zinc-500">
+                              <AtSign className="mr-1 h-3 w-3" />
+                              <span>{circle.twitterId}</span>
+                            </div>
+                          )}
+                          {circle.memo && (
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                              {circle.memo}
+                            </p>
+                          )}
+                        </div>
                       </div>
 
                       <div className="flex items-center gap-1">
@@ -211,6 +245,13 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                         <CreateItemDialog circleId={circle.id} eventId={eventId} />
                       </div>
                     </div>
+
+                    {/* お品書き画像ギャラリー */}
+                    <OshinagakiGallery
+                      circleId={circle.id}
+                      eventId={eventId}
+                      images={circleOshinagakiImagesMap.get(circle.id) || []}
+                    />
                   </div>
                 );
               })}
