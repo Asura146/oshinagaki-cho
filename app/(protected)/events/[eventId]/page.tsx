@@ -4,26 +4,9 @@ import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/db';
 import { events, circles, items, oshinagakiImages } from '@/lib/db/schema';
 import { eq, and, inArray } from 'drizzle-orm';
-import { ArrowLeft, Calendar, MapPin, AtSign, Store, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Calendar, Store } from 'lucide-react';
 import { CreateCircleDialog } from '@/components/CreateCircleDialog';
-import { CreateItemDialog } from '@/components/CreateItemDialog';
-import { ItemRow } from '@/components/ItemRow';
-import { CircleActionMenu } from '@/components/CircleActionMenu';
-import { OshinagakiGallery } from '@/components/OshinagakiGallery';
-
-function getTwitterUrlAndHandle(input: string) {
-  const trimmed = input.trim();
-  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-    const handleMatch = trimmed.match(/(?:twitter\.com|x\.com)\/([a-zA-Z0-9_]+)/);
-    const handle = handleMatch ? `@${handleMatch[1]}` : trimmed;
-    return { url: trimmed, handle };
-  }
-  const cleanHandle = trimmed.replace(/^@/, '');
-  return {
-    url: `https://x.com/${cleanHandle}`,
-    handle: `@${cleanHandle}`,
-  };
-}
+import { CircleCard } from '@/components/CircleCard';
 
 interface EventDetailPageProps {
   params: Promise<{
@@ -187,95 +170,15 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
             <div className="space-y-4">
               {circleList.map((circle) => {
                 const itemsForCircle = circleItemsMap.get(circle.id) || [];
+                const imagesForCircle = circleOshinagakiImagesMap.get(circle.id) || [];
                 return (
-                  <div
+                  <CircleCard
                     key={circle.id}
-                    className="overflow-hidden rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
-                  >
-                    {/* サークルヘッダー */}
-                    <div className="flex items-start justify-between border-b border-zinc-100 pb-3 dark:border-zinc-800">
-                      <div className="flex items-center gap-2.5">
-                        {circle.avatarPath ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={circle.avatarPath}
-                            alt={circle.name}
-                            className="h-9 w-9 rounded-full object-cover border border-zinc-200 dark:border-zinc-700 flex-shrink-0"
-                          />
-                        ) : (
-                          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-500 font-semibold text-xs flex-shrink-0 border border-zinc-200 dark:border-zinc-700">
-                            {circle.name.substring(0, 1)}
-                          </div>
-                        )}
-                        <div className="space-y-0.5">
-                          <div className="flex items-center gap-2">
-                            {circle.space && (
-                              <span className="inline-flex items-center rounded border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-xs font-semibold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
-                                <MapPin className="mr-1 h-3 w-3" />
-                                {circle.space}
-                              </span>
-                            )}
-                            <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-50">
-                              {circle.name}
-                            </h3>
-                          </div>
-                          {circle.twitterId && (() => {
-                            const { url, handle } = getTwitterUrlAndHandle(circle.twitterId);
-                            return (
-                              <a
-                                href={url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center text-xs text-zinc-400 hover:text-zinc-800 dark:text-zinc-500 dark:hover:text-zinc-200 transition-colors group/link"
-                              >
-                                <AtSign className="mr-1 h-3 w-3 text-zinc-400 group-hover/link:text-zinc-600 dark:group-hover/link:text-zinc-300" />
-                                <span className="underline-offset-2 group-hover/link:underline">{handle}</span>
-                                <ExternalLink className="ml-1 h-2.5 w-2.5 opacity-60 group-hover/link:opacity-100" />
-                              </a>
-                            );
-                          })()}
-                          {circle.memo && (
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                              {circle.memo}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-1">
-                        <CircleActionMenu
-                          circle={circle}
-                          eventId={eventId}
-                        />
-                      </div>
-                    </div>
-
-                    {/* アイテムリスト */}
-                    <div className="mt-3">
-                      {itemsForCircle.length > 0 ? (
-                        <div className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
-                          {itemsForCircle.map((item) => (
-                            <ItemRow key={item.id} item={item} eventId={eventId} />
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="py-3 text-center text-xs text-zinc-400 dark:text-zinc-500">
-                          お品書き（アイテム）がまだ追加されていません
-                        </p>
-                      )}
-
-                      <div className="mt-3 flex justify-end">
-                        <CreateItemDialog circleId={circle.id} eventId={eventId} />
-                      </div>
-                    </div>
-
-                    {/* お品書き画像ギャラリー */}
-                    <OshinagakiGallery
-                      circleId={circle.id}
-                      eventId={eventId}
-                      images={circleOshinagakiImagesMap.get(circle.id) || []}
-                    />
-                  </div>
+                    circle={circle}
+                    eventId={eventId}
+                    items={itemsForCircle}
+                    images={imagesForCircle}
+                  />
                 );
               })}
             </div>
