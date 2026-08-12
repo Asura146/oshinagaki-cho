@@ -9,15 +9,31 @@ import { eq, and } from 'drizzle-orm';
 
 const createEventSchema = z.object({
   name: z.string().min(1, 'イベント名は必須です'),
-  eventDate: z.string().optional().transform(val => val === '' ? undefined : val),
-  memo: z.string().optional(),
+  eventDate: z
+    .string()
+    .optional()
+    .nullable()
+    .transform((val) => (!val || val.trim() === '' ? null : val)),
+  memo: z
+    .string()
+    .optional()
+    .nullable()
+    .transform((val) => (!val || val.trim() === '' ? null : val)),
 });
 
 const updateEventSchema = z.object({
   id: z.string().min(1, 'イベントIDが必要です'),
   name: z.string().min(1, 'イベント名は必須です'),
-  eventDate: z.string().optional().transform(val => val === '' ? undefined : val),
-  memo: z.string().optional(),
+  eventDate: z
+    .string()
+    .optional()
+    .nullable()
+    .transform((val) => (!val || val.trim() === '' ? null : val)),
+  memo: z
+    .string()
+    .optional()
+    .nullable()
+    .transform((val) => (!val || val.trim() === '' ? null : val)),
 });
 
 export async function createEvent(formData: FormData) {
@@ -53,7 +69,7 @@ export async function createEvent(formData: FormData) {
       memo: validated.data.memo,
     });
 
-    revalidatePath('/');
+    revalidatePath('/', 'layout');
 
     return { ok: true };
   } catch (error) {
@@ -99,7 +115,7 @@ export async function updateEvent(formData: FormData) {
       })
       .where(and(eq(events.id, validated.data.id), eq(events.userId, user.id)));
 
-    revalidatePath('/');
+    revalidatePath('/', 'layout');
 
     return { ok: true };
   } catch (error) {
@@ -128,7 +144,7 @@ export async function deleteEvent(eventId: string) {
       .delete(events)
       .where(and(eq(events.id, eventId), eq(events.userId, user.id)));
 
-    revalidatePath('/');
+    revalidatePath('/', 'layout');
 
     return { ok: true };
   } catch (error) {
