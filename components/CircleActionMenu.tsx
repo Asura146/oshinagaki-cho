@@ -187,6 +187,20 @@ export function CircleActionMenu({ circle, eventId }: CircleActionMenuProps) {
               </div>
 
               <div className="space-y-1.5">
+                <Label htmlFor={`circle-avatar-${circle.id}`} className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                  サークルアイコン画像を変更
+                </Label>
+                <Input
+                  id={`circle-avatar-${circle.id}`}
+                  name="avatarFile"
+                  type="file"
+                  accept="image/*"
+                  disabled={isLoading}
+                  className="h-9 border-zinc-200 bg-white text-xs dark:border-zinc-800 dark:bg-zinc-950 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-zinc-100 file:text-zinc-700"
+                />
+              </div>
+
+              <div className="space-y-1.5">
                 <Label htmlFor={`circle-memo-${circle.id}`} className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                   メモ
                 </Label>

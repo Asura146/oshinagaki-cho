@@ -129,6 +129,20 @@ export function CreateCircleDialog({ eventId }: CreateCircleDialogProps) {
             </div>
 
             <div className="space-y-1.5">
+              <Label htmlFor="avatarFile" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                サークルアイコン画像
+              </Label>
+              <Input
+                id="avatarFile"
+                name="avatarFile"
+                type="file"
+                accept="image/*"
+                disabled={isLoading}
+                className="h-9 border-zinc-200 bg-white text-xs dark:border-zinc-800 dark:bg-zinc-950 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-zinc-100 file:text-zinc-700"
+              />
+            </div>
+
+            <div className="space-y-1.5">
               <Label htmlFor="memo" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                 メモ
               </Label>
