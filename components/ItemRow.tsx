@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toggleItemChecked, deleteItem } from '@/app/actions/items';
 import { Button } from '@/components/ui/button';
@@ -20,21 +20,43 @@ interface ItemRowProps {
 
 export function ItemRow({ item, eventId }: ItemRowProps) {
   const router = useRouter();
-  const [isPending, setIsPending] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [, startTransition] = useTransition();
 
-  const handleToggle = async () => {
-    setIsPending(true);
-    await toggleItemChecked(item.id, eventId, item.checked);
-    router.refresh();
-    setIsPending(false);
+  // 楽観的UI表示用のローカルState
+  const [isChecked, setIsChecked] = useState(item.checked);
+
+  // サーバーの item.checked が変わったら同期
+  useEffect(() => {
+    setIsChecked(item.checked);
+  }, [item.checked]);
+
+  const handleToggle = () => {
+    const previous = isChecked;
+    const next = !previous;
+
+    // 1. 即座に (0ms) ローカルUIを反転更新
+    setIsChecked(next);
+
+    // 2. バックグラウンドでサーバーへ送信 & 画面同期
+    startTransition(async () => {
+      const result = await toggleItemChecked(item.id, eventId, previous);
+      if (!result.ok) {
+        // 通信失敗時は元の状態にロールバック
+        setIsChecked(previous);
+        alert(result.error || '状態の更新に失敗しました');
+      } else {
+        router.refresh();
+      }
+    });
   };
 
   const handleDelete = async () => {
     if (!confirm(`「${item.name}」を削除してもよろしいですか？`)) return;
-    setIsPending(true);
+    setIsDeleting(true);
     await deleteItem(item.id, eventId);
     router.refresh();
-    setIsPending(false);
+    setIsDeleting(false);
   };
 
   const totalPrice = item.price * item.qty;
@@ -42,22 +64,22 @@ export function ItemRow({ item, eventId }: ItemRowProps) {
   return (
     <div
       className={cn(
-        'flex items-center justify-between py-2 text-sm border-b border-zinc-100 last:border-0 dark:border-zinc-800/60 transition-colors',
-        item.checked && 'opacity-50'
+        'flex items-center justify-between py-2 text-sm border-b border-zinc-100 last:border-0 dark:border-zinc-800/60 transition-all duration-150',
+        isChecked && 'opacity-50'
       )}
     >
       <div className="flex items-center gap-2.5 min-w-0 flex-1">
         <input
           type="checkbox"
-          checked={item.checked}
+          checked={isChecked}
           onChange={handleToggle}
-          disabled={isPending}
-          className="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 cursor-pointer"
+          disabled={isDeleting}
+          className="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 cursor-pointer accent-zinc-900 dark:accent-zinc-100"
         />
         <span
           className={cn(
-            'font-medium truncate text-zinc-800 dark:text-zinc-200',
-            item.checked && 'line-through text-zinc-400 dark:text-zinc-500'
+            'font-medium truncate text-zinc-800 dark:text-zinc-200 transition-all duration-150',
+            isChecked && 'line-through text-zinc-400 dark:text-zinc-500'
           )}
         >
           {item.name}
@@ -80,11 +102,11 @@ export function ItemRow({ item, eventId }: ItemRowProps) {
           type="button"
           variant="ghost"
           size="icon-xs"
-          disabled={isPending}
+          disabled={isDeleting}
           onClick={handleDelete}
           className="h-7 w-7 text-zinc-400 hover:text-red-600 dark:text-zinc-500 dark:hover:text-red-400"
         >
-          {isPending ? (
+          {isDeleting ? (
             <Loader2 className="h-3 w-3 animate-spin" />
           ) : (
             <Trash2 className="h-3.5 w-3.5" />
