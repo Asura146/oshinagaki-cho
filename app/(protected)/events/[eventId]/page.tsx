@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/db';
 import { events, circles, items } from '@/lib/db/schema';
 import { eq, and, inArray } from 'drizzle-orm';
-import { ArrowLeft, Calendar, MapPin, Twitter, Store } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, AtSign, Store } from 'lucide-react';
 import { CreateCircleDialog } from '@/components/CreateCircleDialog';
 import { CreateItemDialog } from '@/components/CreateItemDialog';
 import { ItemRow } from '@/components/ItemRow';
@@ -174,7 +174,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                         </div>
                         {circle.twitterId && (
                           <div className="flex items-center text-xs text-zinc-400 dark:text-zinc-500">
-                            <Twitter className="mr-1 h-3 w-3" />
+                            <AtSign className="mr-1 h-3 w-3" />
                             <span>{circle.twitterId}</span>
                           </div>
                         )}
