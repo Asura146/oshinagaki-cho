@@ -148,6 +148,36 @@ export async function toggleItemChecked(itemId: string, eventId: string, current
   }
 }
 
+export async function toggleAllItemsInCircle(circleId: string, eventId: string, targetChecked: boolean) {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return { ok: false, error: '認証が必要です。ログインし直してください。' };
+    }
+
+    await db
+      .update(items)
+      .set({
+        checked: targetChecked,
+        updatedAt: new Date(),
+      })
+      .where(and(eq(items.circleId, circleId), eq(items.userId, user.id)));
+
+    revalidatePath(`/events/${eventId}`);
+    revalidatePath('/', 'layout');
+
+    return { ok: true };
+  } catch (error) {
+    console.error('Failed to toggle all items in circle:', error);
+    return { ok: false, error: '一括状態更新に失敗しました。' };
+  }
+}
+
 export async function deleteItem(itemId: string, eventId: string) {
   try {
     const supabase = await createClient();

@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
+import { toggleAllItemsInCircle } from '@/app/actions/items';
 import { MapPin, AtSign, ChevronDown, ChevronUp } from 'lucide-react';
 import { CircleActionMenu } from '@/components/CircleActionMenu';
 import { CreateItemDialog } from '@/components/CreateItemDialog';
@@ -47,16 +49,70 @@ function getTwitterUrlAndHandle(input: string) {
 }
 
 export function CircleCard({ circle, eventId, items, images }: CircleCardProps) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(true);
+  const [, startTransition] = useTransition();
 
-  const totalCount = items.length;
-  const checkedCount = items.filter((i) => i.checked).length;
+  // 楽観的UI管理用
+  const [localItems, setLocalItems] = useState(items);
+
+  useEffect(() => {
+    setLocalItems(items);
+  }, [items]);
+
+  const totalCount = localItems.length;
+  const checkedCount = localItems.filter((i) => i.checked).length;
+  const isAllChecked = totalCount > 0 && checkedCount === totalCount;
+
+  // サークル一括チェックの切り替え
+  const handleCircleCheckToggle = () => {
+    if (totalCount === 0) return;
+    const previous = localItems;
+    const targetChecked = !isAllChecked;
+
+    // 1. 即座に (0ms) 全ローカルアイテムの checked 状態を一括更新
+    setLocalItems(previous.map((item) => ({ ...item, checked: targetChecked })));
+
+    // 2. バックグラウンドでサーバー同期
+    startTransition(async () => {
+      const result = await toggleAllItemsInCircle(circle.id, eventId, targetChecked);
+      if (!result.ok) {
+        setLocalItems(previous);
+        alert(result.error || '一括状態更新に失敗しました');
+      } else {
+        router.refresh();
+      }
+    });
+  };
 
   return (
-    <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900 transition-all duration-200">
+    <div
+      className={cn(
+        'overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900 transition-all duration-200',
+        isAllChecked && 'bg-zinc-50/70 dark:bg-zinc-950/40'
+      )}
+    >
       {/* サークルヘッダー */}
       <div className="flex items-start justify-between p-5 pb-3">
-        <div className="flex items-start gap-2.5 flex-1 min-w-0 pr-2">
+        <div className="flex items-start gap-3 flex-1 min-w-0 pr-2">
+          {/* サークル一括チェックボックス */}
+          <div className="pt-1 flex-shrink-0">
+            <input
+              type="checkbox"
+              checked={isAllChecked}
+              onChange={handleCircleCheckToggle}
+              disabled={totalCount === 0}
+              title={
+                totalCount === 0
+                  ? 'アイテムが追加されていません'
+                  : isAllChecked
+                  ? '一括解除'
+                  : 'サークルの全アイテムを一括チェック'
+              }
+              className="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 cursor-pointer accent-zinc-900 dark:accent-zinc-100 disabled:opacity-30 disabled:cursor-not-allowed"
+            />
+          </div>
+
           {circle.avatarPath ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -111,8 +167,8 @@ export function CircleCard({ circle, eventId, items, images }: CircleCardProps) 
           {totalCount > 0 && (
             <span
               className={cn(
-                'text-[11px] font-medium px-2 py-0.5 rounded-full border',
-                checkedCount === totalCount
+                'text-[11px] font-medium px-2 py-0.5 rounded-full border transition-colors',
+                isAllChecked
                   ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/40'
                   : 'bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700'
               )}
@@ -141,9 +197,9 @@ export function CircleCard({ circle, eventId, items, images }: CircleCardProps) 
         <div className="px-5 pb-5 pt-1 border-t border-zinc-100 dark:border-zinc-800/80">
           {/* アイテムリスト */}
           <div className="mt-2">
-            {items.length > 0 ? (
+            {localItems.length > 0 ? (
               <div className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
-                {items.map((item) => (
+                {localItems.map((item) => (
                   <ItemRow key={item.id} item={item} eventId={eventId} />
                 ))}
               </div>
