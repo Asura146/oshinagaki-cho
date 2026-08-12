@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createEvent } from '@/app/actions/events';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 import {
   Card,
   CardHeader,
@@ -113,14 +114,15 @@ export default function NewEventPage() {
             </CardContent>
 
             <CardFooter className="flex justify-end gap-3 border-t border-zinc-100 px-6 py-4 dark:border-zinc-800">
-              <Button
-                type="button"
-                variant="ghost"
-                disabled={isLoading}
-                asChild
+              <Link
+                href="/"
+                className={cn(
+                  buttonVariants({ variant: 'ghost' }),
+                  isLoading && 'pointer-events-none opacity-50'
+                )}
               >
-                <Link href="/">キャンセル</Link>
-              </Button>
+                キャンセル
+              </Link>
               <Button
                 type="submit"
                 disabled={isLoading}

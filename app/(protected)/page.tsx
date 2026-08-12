@@ -2,11 +2,12 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { signOutAction } from '@/app/actions/auth';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { db } from '@/lib/db';
 import { events } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { LogOut, Plus, Calendar, FileText } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default async function Home() {
   const supabase = await createClient();
@@ -79,16 +80,16 @@ export default async function Home() {
               <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
                 イベント一覧
               </h2>
-              <Button
-                size="sm"
-                className="bg-zinc-900 text-white hover:bg-zinc-850 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
-                asChild
+              <Link
+                href="/events/new"
+                className={cn(
+                  buttonVariants({ size: 'sm' }),
+                  'bg-zinc-900 text-white hover:bg-zinc-850 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200'
+                )}
               >
-                <Link href="/events/new">
-                  <Plus className="mr-1.5 h-3.5 w-3.5" />
-                  イベントを作成
-                </Link>
-              </Button>
+                <Plus className="mr-1.5 h-3.5 w-3.5" />
+                イベントを作成
+              </Link>
             </div>
 
             {/* イベントリスト */}
