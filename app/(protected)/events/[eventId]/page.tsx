@@ -4,12 +4,26 @@ import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/db';
 import { events, circles, items, oshinagakiImages } from '@/lib/db/schema';
 import { eq, and, inArray } from 'drizzle-orm';
-import { ArrowLeft, Calendar, MapPin, AtSign, Store } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, AtSign, Store, ExternalLink } from 'lucide-react';
 import { CreateCircleDialog } from '@/components/CreateCircleDialog';
 import { CreateItemDialog } from '@/components/CreateItemDialog';
 import { ItemRow } from '@/components/ItemRow';
 import { CircleActionMenu } from '@/components/CircleActionMenu';
 import { OshinagakiGallery } from '@/components/OshinagakiGallery';
+
+function getTwitterUrlAndHandle(input: string) {
+  const trimmed = input.trim();
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    const handleMatch = trimmed.match(/(?:twitter\.com|x\.com)\/([a-zA-Z0-9_]+)/);
+    const handle = handleMatch ? `@${handleMatch[1]}` : trimmed;
+    return { url: trimmed, handle };
+  }
+  const cleanHandle = trimmed.replace(/^@/, '');
+  return {
+    url: `https://x.com/${cleanHandle}`,
+    handle: `@${cleanHandle}`,
+  };
+}
 
 interface EventDetailPageProps {
   params: Promise<{
@@ -205,12 +219,21 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                               {circle.name}
                             </h3>
                           </div>
-                          {circle.twitterId && (
-                            <div className="flex items-center text-xs text-zinc-400 dark:text-zinc-500">
-                              <AtSign className="mr-1 h-3 w-3" />
-                              <span>{circle.twitterId}</span>
-                            </div>
-                          )}
+                          {circle.twitterId && (() => {
+                            const { url, handle } = getTwitterUrlAndHandle(circle.twitterId);
+                            return (
+                              <a
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center text-xs text-zinc-400 hover:text-zinc-800 dark:text-zinc-500 dark:hover:text-zinc-200 transition-colors group/link"
+                              >
+                                <AtSign className="mr-1 h-3 w-3 text-zinc-400 group-hover/link:text-zinc-600 dark:group-hover/link:text-zinc-300" />
+                                <span className="underline-offset-2 group-hover/link:underline">{handle}</span>
+                                <ExternalLink className="ml-1 h-2.5 w-2.5 opacity-60 group-hover/link:opacity-100" />
+                              </a>
+                            );
+                          })()}
                           {circle.memo && (
                             <p className="text-xs text-zinc-500 dark:text-zinc-400">
                               {circle.memo}
