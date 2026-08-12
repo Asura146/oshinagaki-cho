@@ -137,17 +137,17 @@ export function OshinagakiGallery({ circleId, eventId, images }: OshinagakiGalle
 
       {/* 拡大表示モーダル (ライトボックス) */}
       <Dialog open={!!selectedImage} onOpenChange={(open) => !open && setSelectedImage(null)}>
-        <DialogContent className="max-w-2xl p-2 border-zinc-200 bg-white/95 dark:border-zinc-800 dark:bg-zinc-900/95 backdrop-blur">
+        <DialogContent className="max-w-4xl sm:max-w-5xl lg:max-w-6xl w-[95vw] p-2 border-zinc-200 bg-white/95 dark:border-zinc-800 dark:bg-zinc-900/95 backdrop-blur shadow-2xl">
           <DialogHeader className="sr-only">
             <DialogTitle>お品書き画像の拡大表示</DialogTitle>
           </DialogHeader>
           {selectedImage && (
-            <div className="relative flex items-center justify-center max-h-[80vh] overflow-auto rounded-lg">
+            <div className="relative flex items-center justify-center max-h-[88vh] w-full overflow-auto rounded-lg">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={selectedImage}
                 alt="お品書き拡大"
-                className="max-h-[80vh] w-auto object-contain rounded"
+                className="max-h-[85vh] max-w-full w-auto h-auto object-contain rounded"
               />
             </div>
           )}
