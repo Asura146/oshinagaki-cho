@@ -1,11 +1,12 @@
 import Image from 'next/image';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { signOutAction } from '@/app/actions/auth';
 import { Button } from '@/components/ui/button';
 import { db } from '@/lib/db';
 import { events } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
-import { LogOut, Calendar, FileText } from 'lucide-react';
+import { LogOut, Calendar, FileText, ChevronRight } from 'lucide-react';
 import { CreateEventDialog } from '@/components/CreateEventDialog';
 import { EventActionMenu } from '@/components/EventActionMenu';
 
@@ -92,16 +93,22 @@ export default async function Home() {
                     className="flex flex-col py-4 text-left first:pt-3 last:pb-3"
                   >
                     <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">
-                          {event.name}
-                        </h3>
+                      <Link
+                        href={`/events/${event.id}`}
+                        className="group flex-1 min-w-0"
+                      >
+                        <div className="flex items-center gap-1">
+                          <h3 className="font-semibold text-zinc-900 group-hover:text-zinc-600 dark:text-zinc-100 dark:group-hover:text-zinc-300 transition-colors">
+                            {event.name}
+                          </h3>
+                          <ChevronRight className="h-4 w-4 text-zinc-400 opacity-0 group-hover:opacity-100 transition-all -translate-x-1 group-hover:translate-x-0" />
+                        </div>
                         {event.memo && (
                           <p className="mt-1 text-xs text-zinc-500 line-clamp-2 dark:text-zinc-400">
                             {event.memo}
                           </p>
                         )}
-                      </div>
+                      </Link>
                       <div className="flex flex-shrink-0 items-center gap-2">
                         {event.eventDate && (
                           <div className="flex items-center text-xs text-zinc-500 dark:text-zinc-400">
