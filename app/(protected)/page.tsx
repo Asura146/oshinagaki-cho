@@ -7,6 +7,7 @@ import { events } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { LogOut, Calendar, FileText } from 'lucide-react';
 import { CreateEventDialog } from '@/components/CreateEventDialog';
+import { EventActionMenu } from '@/components/EventActionMenu';
 
 export default async function Home() {
   const supabase = await createClient();
@@ -101,12 +102,15 @@ export default async function Home() {
                           </p>
                         )}
                       </div>
-                      {event.eventDate && (
-                        <div className="flex flex-shrink-0 items-center text-xs text-zinc-500 dark:text-zinc-400">
-                          <Calendar className="mr-1 h-3.5 w-3.5" />
-                          <span>{event.eventDate}</span>
-                        </div>
-                      )}
+                      <div className="flex flex-shrink-0 items-center gap-2">
+                        {event.eventDate && (
+                          <div className="flex items-center text-xs text-zinc-500 dark:text-zinc-400">
+                            <Calendar className="mr-1 h-3.5 w-3.5" />
+                            <span>{event.eventDate}</span>
+                          </div>
+                        )}
+                        <EventActionMenu event={event} />
+                      </div>
                     </div>
                   </div>
                 ))}
