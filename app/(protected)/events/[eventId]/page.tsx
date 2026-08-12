@@ -187,8 +187,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
 
                       <div className="flex items-center gap-1">
                         <CircleActionMenu
-                          circleId={circle.id}
-                          circleName={circle.name}
+                          circle={circle}
                           eventId={eventId}
                         />
                       </div>
