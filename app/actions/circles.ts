@@ -24,6 +24,34 @@ const updateCircleSchema = z.object({
   memo: z.string().optional().nullable().transform((val) => (!val || val.trim() === '' ? null : val)),
 });
 
+async function processAvatarFile(file: File | null, userId: string, circleId: string, supabase: any): Promise<string | null> {
+  if (!file || file.size === 0) return null;
+  const fileBuffer = await file.arrayBuffer();
+  const base64 = Buffer.from(fileBuffer).toString('base64');
+  const mimeType = file.type || 'image/png';
+  const dataUrl = `data:${mimeType};base64,${base64}`;
+
+  let finalPath = dataUrl;
+  const filename = `${userId}/avatars/${circleId}_${Date.now()}`;
+  try {
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('oshinagaki')
+      .upload(filename, fileBuffer, { contentType: mimeType, upsert: true });
+
+    if (!uploadError && uploadData) {
+      const { data: publicUrlData } = supabase.storage
+        .from('oshinagaki')
+        .getPublicUrl(filename);
+      if (publicUrlData?.publicUrl) {
+        finalPath = publicUrlData.publicUrl;
+      }
+    }
+  } catch {
+    // Storage利用不可時のフォールバック
+  }
+  return finalPath;
+}
+
 export async function createCircle(formData: FormData) {
   try {
     const supabase = await createClient();
@@ -52,13 +80,19 @@ export async function createCircle(formData: FormData) {
       };
     }
 
+    const avatarFile = formData.get('avatarFile') as File | null;
+    const tempCircleId = crypto.randomUUID();
+    const avatarPath = await processAvatarFile(avatarFile, user.id, tempCircleId, supabase);
+
     await db.insert(circles).values({
+      id: tempCircleId,
       eventId: validated.data.eventId,
       userId: user.id,
       name: validated.data.name,
       space: validated.data.space,
       twitterId: validated.data.twitterId,
       memo: validated.data.memo,
+      avatarPath: avatarPath,
     });
 
     revalidatePath(`/events/${validated.data.eventId}`);
@@ -100,15 +134,24 @@ export async function updateCircle(formData: FormData) {
       };
     }
 
+    const avatarFile = formData.get('avatarFile') as File | null;
+    const newAvatarPath = await processAvatarFile(avatarFile, user.id, validated.data.id, supabase);
+
+    const updateValues: Record<string, any> = {
+      name: validated.data.name,
+      space: validated.data.space,
+      twitterId: validated.data.twitterId,
+      memo: validated.data.memo,
+      updatedAt: new Date(),
+    };
+
+    if (newAvatarPath) {
+      updateValues.avatarPath = newAvatarPath;
+    }
+
     await db
       .update(circles)
-      .set({
-        name: validated.data.name,
-        space: validated.data.space,
-        twitterId: validated.data.twitterId,
-        memo: validated.data.memo,
-        updatedAt: new Date(),
-      })
+      .set(updateValues)
       .where(and(eq(circles.id, validated.data.id), eq(circles.userId, user.id)));
 
     revalidatePath(`/events/${validated.data.eventId}`);
