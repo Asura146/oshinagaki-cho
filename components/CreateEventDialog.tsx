@@ -63,7 +63,7 @@ export function CreateEventDialog() {
         イベントを作成
       </DialogTrigger>
 
-      <DialogContent className="border-zinc-200 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-900 max-w-md w-full">
+      <DialogContent className="border-zinc-200 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-900 w-[calc(100vw-2rem)] sm:w-full sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
             新規イベント作成

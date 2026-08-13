@@ -137,7 +137,7 @@ export function OshinagakiGallery({ circleId, eventId, images }: OshinagakiGalle
 
       {/* 拡大表示モーダル (ライトボックス) */}
       <Dialog open={!!selectedImage} onOpenChange={(open) => !open && setSelectedImage(null)}>
-        <DialogContent className="max-w-4xl sm:max-w-5xl lg:max-w-6xl w-[95vw] p-2 border-zinc-200 bg-white/95 dark:border-zinc-800 dark:bg-zinc-900/95 backdrop-blur shadow-2xl">
+        <DialogContent className="max-w-4xl sm:max-w-5xl lg:max-w-6xl w-[calc(100vw-2rem)] sm:w-[95vw] p-2 border-zinc-200 bg-white/95 dark:border-zinc-800 dark:bg-zinc-900/95 backdrop-blur shadow-2xl">
           <DialogHeader className="sr-only">
             <DialogTitle>お品書き画像の拡大表示</DialogTitle>
           </DialogHeader>
