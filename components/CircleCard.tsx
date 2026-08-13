@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useTransition } from 'react';
+import { useState, useEffect, useTransition, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { toggleAllItemsInCircle } from '@/app/actions/items';
 import { MapPin, AtSign, ChevronDown, ChevronUp, ArrowUp, ArrowDown } from 'lucide-react';
@@ -36,6 +36,7 @@ interface CircleCardProps {
   onMoveDown?: () => void;
   isFirst?: boolean;
   isLast?: boolean;
+  onLongPress?: () => void;
 }
 
 function getTwitterUrlAndHandle(input: string) {
@@ -61,10 +62,45 @@ export function CircleCard({
   onMoveDown,
   isFirst,
   isLast,
+  onLongPress,
 }: CircleCardProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(true);
   const [, startTransition] = useTransition();
+
+  // 長押し検知・誤操作防止タイマー
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const startPosRef = useRef<{ x: number; y: number } | null>(null);
+
+  const startPress = (x: number, y: number) => {
+    if (!onLongPress) return;
+    startPosRef.current = { x, y };
+    timerRef.current = setTimeout(() => {
+      if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+        try {
+          navigator.vibrate(40);
+        } catch {}
+      }
+      onLongPress();
+    }, 500);
+  };
+
+  const cancelPress = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+
+  const movePress = (x: number, y: number) => {
+    if (!startPosRef.current) return;
+    const diffX = Math.abs(x - startPosRef.current.x);
+    const diffY = Math.abs(y - startPosRef.current.y);
+    // スクロール判定 (8px以上移動した場合は即座に長押しをキャンセル)
+    if (diffX > 8 || diffY > 8) {
+      cancelPress();
+    }
+  };
 
   // 楽観的UI管理用
   const [localItems, setLocalItems] = useState(items);
@@ -106,7 +142,17 @@ export function CircleCard({
       )}
     >
       {/* サークルヘッダー */}
-      <div className="flex items-start justify-between p-5 pb-3">
+      <div
+        className="flex items-start justify-between p-5 pb-3 select-none"
+        onTouchStart={(e) => startPress(e.touches[0].clientX, e.touches[0].clientY)}
+        onTouchMove={(e) => movePress(e.touches[0].clientX, e.touches[0].clientY)}
+        onTouchEnd={cancelPress}
+        onTouchCancel={cancelPress}
+        onMouseDown={(e) => startPress(e.clientX, e.clientY)}
+        onMouseMove={(e) => movePress(e.clientX, e.clientY)}
+        onMouseUp={cancelPress}
+        onMouseLeave={cancelPress}
+      >
         <div className="flex items-start gap-3 flex-1 min-w-0 pr-2">
           {/* サークル一括チェックボックス */}
           <div className="pt-1 flex-shrink-0">
