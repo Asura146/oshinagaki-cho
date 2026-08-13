@@ -163,7 +163,6 @@ export function CircleListContainer({
               onMoveDown={() => handleMove(originalIndex, 'down')}
               isFirst={originalIndex === 0}
               isLast={originalIndex === list.length - 1}
-              onLongPress={() => setIsReorderOpen(true)}
             />
           );
         })

@@ -3,12 +3,18 @@
 import { useState, useEffect, useTransition, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { toggleAllItemsInCircle } from '@/app/actions/items';
-import { MapPin, AtSign, ChevronDown, ChevronUp, ArrowUp, ArrowDown } from 'lucide-react';
+import { MapPin, AtSign, ChevronDown, ChevronUp, ArrowUp, ArrowDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { CircleActionMenu } from '@/components/CircleActionMenu';
 import { CreateItemDialog } from '@/components/CreateItemDialog';
 import { ItemRow } from '@/components/ItemRow';
 import { OshinagakiGallery } from '@/components/OshinagakiGallery';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 
 interface CircleCardProps {
@@ -68,13 +74,26 @@ export function CircleCard({
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [, startTransition] = useTransition();
+  const [previewImageIndex, setPreviewImageIndex] = useState<number | null>(null);
 
   // 長押し検知・誤操作防止タイマー
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const startPosRef = useRef<{ x: number; y: number } | null>(null);
 
+  const triggerLongPressAction = () => {
+    if (onLongPress) {
+      onLongPress();
+      return;
+    }
+
+    if (images && images.length > 0) {
+      setPreviewImageIndex(0);
+    } else {
+      alert('お品書き画像が登録されていません');
+    }
+  };
+
   const startPress = (x: number, y: number) => {
-    if (!onLongPress) return;
     startPosRef.current = { x, y };
     timerRef.current = setTimeout(() => {
       if (typeof window !== 'undefined' && 'vibrate' in navigator) {
@@ -82,7 +101,7 @@ export function CircleCard({
           navigator.vibrate(40);
         } catch {}
       }
-      onLongPress();
+      triggerLongPressAction();
     }, 500);
   };
 
@@ -100,6 +119,20 @@ export function CircleCard({
     // スクロール判定 (8px以上移動した場合は即座に長押しをキャンセル)
     if (diffX > 8 || diffY > 8) {
       cancelPress();
+    }
+  };
+
+  const handleNextImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (previewImageIndex !== null && images.length > 0) {
+      setPreviewImageIndex((previewImageIndex + 1) % images.length);
+    }
+  };
+
+  const handlePrevImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (previewImageIndex !== null && images.length > 0) {
+      setPreviewImageIndex((previewImageIndex - 1 + images.length) % images.length);
     }
   };
 
@@ -333,6 +366,56 @@ export function CircleCard({
           <OshinagakiGallery circleId={circle.id} eventId={eventId} images={images} />
         </div>
       )}
+
+      {/* お品書き画像長押し拡大モーダル */}
+      <Dialog
+        open={previewImageIndex !== null}
+        onOpenChange={(open) => !open && setPreviewImageIndex(null)}
+      >
+        <DialogContent className="max-w-4xl sm:max-w-5xl lg:max-w-6xl w-[95vw] p-2 border-zinc-200 bg-white/95 dark:border-zinc-800 dark:bg-zinc-900/95 backdrop-blur shadow-2xl">
+          <DialogHeader className="sr-only">
+            <DialogTitle>{circle.name} のお品書き画像</DialogTitle>
+          </DialogHeader>
+          {previewImageIndex !== null && images[previewImageIndex] && (
+            <div className="relative flex items-center justify-center max-h-[88vh] w-full overflow-hidden rounded-lg">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={images[previewImageIndex].storagePath}
+                alt={`${circle.name}のお品書き`}
+                className="max-h-[85vh] max-w-full w-auto h-auto object-contain rounded"
+              />
+
+              {/* 複数枚の場合の前へ・次へボタン */}
+              {images.length > 1 && (
+                <>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={handlePrevImage}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-white h-9 w-9"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleNextImage}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-white h-9 w-9"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </Button>
+
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1 text-xs text-white">
+                    {previewImageIndex + 1} / {images.length}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
