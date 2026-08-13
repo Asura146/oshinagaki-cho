@@ -96,7 +96,7 @@ export function ReorderCirclesDialog({
       <DialogContent className="max-w-md border-zinc-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-900 sm:rounded-xl">
         <DialogHeader>
           <DialogTitle className="text-base font-bold text-zinc-900 dark:text-zinc-50">
-            サークルの並べ替え
+            並べ替え
           </DialogTitle>
           <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
             ドラッグ＆ドロップ、または上下矢印ボタンで巡回順序を入れ替えてください。

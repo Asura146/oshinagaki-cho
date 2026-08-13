@@ -82,7 +82,7 @@ export function CircleListContainer({
             className="text-xs text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 cursor-pointer"
           >
             <ArrowUpDown className="mr-1 h-3 w-3" />
-            並べ替えモーダル
+            並べ替え
           </Button>
         </div>
       )}
