@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useTransition, useRef } from 'react';
-import { useRouter } from 'next/navigation';
 import { toggleAllItemsInCircle } from '@/app/actions/items';
 import { MapPin, AtSign, ChevronDown, ChevronUp, ArrowUp, ArrowDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { CircleActionMenu } from '@/components/CircleActionMenu';
@@ -80,7 +79,6 @@ export function CircleCard({
   isLast,
   onLongPress,
 }: CircleCardProps) {
-  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [, startTransition] = useTransition();
   const [previewImageIndex, setPreviewImageIndex] = useState<number | null>(null);
@@ -172,8 +170,6 @@ export function CircleCard({
       if (!result.ok) {
         setLocalItems(previous);
         alert(result.error || '一括状態更新に失敗しました');
-      } else {
-        router.refresh();
       }
     });
   };

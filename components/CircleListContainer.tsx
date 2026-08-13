@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
 import { reorderCircles } from '@/app/actions/circles';
 import { CircleCard } from '@/components/CircleCard';
 import { ReorderCirclesDialog } from '@/components/ReorderCirclesDialog';
@@ -30,7 +29,6 @@ export function CircleListContainer({
   circleItemsMap,
   circleOshinagakiImagesMap,
 }: CircleListContainerProps) {
-  const router = useRouter();
   const [, startTransition] = useTransition();
   const [list, setList] = useState(circleList);
   const [isReorderOpen, setIsReorderOpen] = useState(false);
@@ -83,8 +81,6 @@ export function CircleListContainer({
       if (!result.ok) {
         setList(previousList);
         alert(result.error || '順序の変更に失敗しました');
-      } else {
-        router.refresh();
       }
     });
   };

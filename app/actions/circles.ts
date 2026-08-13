@@ -169,7 +169,6 @@ export async function updateCircle(formData: FormData) {
       .where(and(eq(circles.id, validated.data.id), eq(circles.userId, user.id)));
 
     revalidatePath(`/events/${validated.data.eventId}`);
-    revalidatePath('/', 'layout');
 
     return { ok: true };
   } catch (error) {
@@ -230,7 +229,6 @@ export async function reorderCircles(eventId: string, orderedCircleIds: string[]
     );
 
     revalidatePath(`/events/${eventId}`);
-    revalidatePath('/', 'layout');
 
     return { ok: true };
   } catch (error) {

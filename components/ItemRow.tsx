@@ -69,8 +69,6 @@ export function ItemRow({ item, eventId }: ItemRowProps) {
       if (!result.ok) {
         setIsChecked(previous);
         alert(result.error || '状態の更新に失敗しました');
-      } else {
-        router.refresh();
       }
     });
   };

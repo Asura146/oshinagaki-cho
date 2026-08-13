@@ -48,23 +48,19 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
 
   const circleIds = circleList.map((c) => c.id);
 
-  // アイテム一覧の取得
-  const itemList =
-    circleIds.length > 0
-      ? await db
+  // アイテム一覧とお品書き画像を並列取得
+  const [itemList, allOshinagakiImages] = circleIds.length > 0
+    ? await Promise.all([
+        db
           .select()
           .from(items)
-          .where(and(inArray(items.circleId, circleIds), eq(items.userId, user.id)))
-      : [];
-
-  // お品書き画像の取得
-  const allOshinagakiImages =
-    circleIds.length > 0
-      ? await db
+          .where(and(inArray(items.circleId, circleIds), eq(items.userId, user.id))),
+        db
           .select()
           .from(oshinagakiImages)
-          .where(and(inArray(oshinagakiImages.circleId, circleIds), eq(oshinagakiImages.userId, user.id)))
-      : [];
+          .where(and(inArray(oshinagakiImages.circleId, circleIds), eq(oshinagakiImages.userId, user.id))),
+      ])
+    : [[], []];
 
   // 集計計算
   let totalBudget = 0;
