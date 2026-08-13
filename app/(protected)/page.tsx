@@ -1,8 +1,14 @@
 import Image from 'next/image';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { signOutAction } from '@/app/actions/auth';
 import { Button } from '@/components/ui/button';
-import { LogOut } from 'lucide-react';
+import { db } from '@/lib/db';
+import { events } from '@/lib/db/schema';
+import { eq, desc } from 'drizzle-orm';
+import { LogOut, Calendar, FileText, ChevronRight } from 'lucide-react';
+import { CreateEventDialog } from '@/components/CreateEventDialog';
+import { EventActionMenu } from '@/components/EventActionMenu';
 
 export default async function Home() {
   const supabase = await createClient();
@@ -13,56 +19,122 @@ export default async function Home() {
   const fullName = user?.user_metadata?.full_name || user?.email || 'ゲストユーザー';
   const avatarUrl = user?.user_metadata?.avatar_url;
 
+  // Drizzleでログイン中のユーザーに関連するイベント一覧を取得
+  const userEvents = user
+    ? await db
+        .select()
+        .from(events)
+        .where(eq(events.userId, user.id))
+        .orderBy(desc(events.createdAt))
+    : [];
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 px-4 py-12 font-sans dark:bg-zinc-950">
-      <main className="w-full max-w-md">
+    <div className="flex min-h-screen items-start justify-center bg-zinc-50 px-4 py-6 sm:py-10 font-sans dark:bg-zinc-950">
+      <main className="w-full max-w-xl">
         <div className="rounded-xl border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="flex flex-col items-center text-center">
-            {/* ユーザーアバター */}
-            <div className="relative flex h-20 w-20 items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-800">
-              {avatarUrl ? (
-                <Image
-                  src={avatarUrl}
-                  alt={fullName}
-                  width={72}
-                  height={72}
-                  className="rounded-full bg-zinc-100 object-cover dark:bg-zinc-800"
-                  unoptimized
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center rounded-full bg-zinc-100 text-xl font-bold text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
-                  {fullName.substring(0, 1).toUpperCase()}
-                </div>
-              )}
+          
+          {/* ユーザープロフィールヘッダー */}
+          <div className="flex items-center justify-between border-b border-zinc-100 pb-6 dark:border-zinc-800">
+            <div className="flex items-center gap-3">
+              <div className="relative flex h-12 w-12 items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 p-0.5 dark:border-zinc-800 dark:bg-zinc-800">
+                {avatarUrl ? (
+                  <Image
+                    src={avatarUrl}
+                    alt={fullName}
+                    width={44}
+                    height={44}
+                    className="rounded-full bg-zinc-100 object-cover dark:bg-zinc-800"
+                    unoptimized
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center rounded-full bg-zinc-100 text-sm font-bold text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                    {fullName.substring(0, 1).toUpperCase()}
+                  </div>
+                )}
+              </div>
+              <div className="text-left">
+                <h1 className="text-sm font-bold text-zinc-900 dark:text-zinc-50">
+                  {fullName}
+                </h1>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  {user?.email}
+                </p>
+              </div>
             </div>
 
-            <h1 className="mt-4 text-xl font-bold text-zinc-900 dark:text-zinc-50">
-              おかえりなさい、{fullName} さん
-            </h1>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              {user?.email}
-            </p>
-          </div>
-
-          <div className="mt-8 space-y-6">
-            <div className="rounded-lg border border-zinc-100 bg-zinc-50/50 p-5 dark:border-zinc-800 dark:bg-zinc-900/50">
-              <h2 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">お品書き帳ステータス</h2>
-              <p className="mt-1 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-                データベースの構築が完了し、認証連携が動作しています。現在はイベントやサークルの管理画面の作成に向けて準備が整いました。
-              </p>
-            </div>
-
-            <form action={signOutAction} className="w-full">
+            <form action={signOutAction}>
               <Button
                 type="submit"
-                variant="outline"
-                className="w-full border-zinc-200 text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-50"
+                variant="ghost"
+                size="icon"
+                className="text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
+                title="ログアウト"
               >
-                <LogOut className="mr-2 h-4 w-4" />
-                ログアウト
+                <LogOut className="h-4 w-4" />
               </Button>
             </form>
           </div>
+
+          {/* コンテンツエリア */}
+          <div className="mt-8 space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
+                イベント一覧
+              </h2>
+              <CreateEventDialog />
+            </div>
+
+            {/* イベントリスト */}
+            {userEvents.length > 0 ? (
+              <div className="divide-y divide-zinc-100 border-y border-zinc-100 dark:divide-zinc-800 dark:border-zinc-800">
+                {userEvents.map((event) => (
+                  <div
+                    key={event.id}
+                    className="flex flex-col py-4 text-left first:pt-3 last:pb-3"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <Link
+                        href={`/events/${event.id}`}
+                        className="group flex-1 min-w-0"
+                      >
+                        <div className="flex items-center gap-1">
+                          <h3 className="font-semibold text-zinc-900 group-hover:text-zinc-600 dark:text-zinc-100 dark:group-hover:text-zinc-300 transition-colors">
+                            {event.name}
+                          </h3>
+                          <ChevronRight className="h-4 w-4 text-zinc-400 opacity-0 group-hover:opacity-100 transition-all -translate-x-1 group-hover:translate-x-0" />
+                        </div>
+                        {event.memo && (
+                          <p className="mt-1 text-xs text-zinc-500 line-clamp-2 dark:text-zinc-400">
+                            {event.memo}
+                          </p>
+                        )}
+                      </Link>
+                      <div className="flex flex-shrink-0 items-center gap-2">
+                        {event.eventDate && (
+                          <div className="flex items-center text-xs text-zinc-500 dark:text-zinc-400">
+                            <Calendar className="mr-1 h-3.5 w-3.5" />
+                            <span>{event.eventDate}</span>
+                          </div>
+                        )}
+                        <EventActionMenu event={event} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-zinc-200 py-12 text-center dark:border-zinc-800">
+                <FileText className="mx-auto h-8 w-8 text-zinc-400" />
+                <p className="mt-2 text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                  登録されたイベントはありません
+                </p>
+                <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
+                  「イベントを作成」ボタンから新しく作成してください。
+                </p>
+              </div>
+            )}
+          </div>
+
         </div>
       </main>
     </div>
