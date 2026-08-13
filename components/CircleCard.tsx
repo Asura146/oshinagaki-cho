@@ -143,20 +143,24 @@ export function CircleCard({
       )}
     >
       {/* サークルヘッダー */}
-      <div
-        className="flex items-start justify-between p-5 pb-3 select-none"
-        onTouchStart={(e) => startPress(e.touches[0].clientX, e.touches[0].clientY)}
-        onTouchMove={(e) => movePress(e.touches[0].clientX, e.touches[0].clientY)}
-        onTouchEnd={cancelPress}
-        onTouchCancel={cancelPress}
-        onMouseDown={(e) => startPress(e.clientX, e.clientY)}
-        onMouseMove={(e) => movePress(e.clientX, e.clientY)}
-        onMouseUp={cancelPress}
-        onMouseLeave={cancelPress}
-      >
-        <div className="flex items-start gap-3 flex-1 min-w-0 pr-2">
+      <div className="flex items-start justify-between p-5 pb-3 select-none">
+        <div
+          className="flex items-start gap-3 flex-1 min-w-0 pr-2 cursor-pointer"
+          onTouchStart={(e) => startPress(e.touches[0].clientX, e.touches[0].clientY)}
+          onTouchMove={(e) => movePress(e.touches[0].clientX, e.touches[0].clientY)}
+          onTouchEnd={cancelPress}
+          onTouchCancel={cancelPress}
+          onMouseDown={(e) => startPress(e.clientX, e.clientY)}
+          onMouseMove={(e) => movePress(e.clientX, e.clientY)}
+          onMouseUp={cancelPress}
+          onMouseLeave={cancelPress}
+        >
           {/* サークル一括チェックボックス */}
-          <div className="pt-1 flex-shrink-0">
+          <div
+            className="pt-1 flex-shrink-0"
+            onTouchStart={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
             <input
               type="checkbox"
               checked={isAllChecked}
@@ -224,6 +228,8 @@ export function CircleCard({
                   href={url}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onTouchStart={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
                   className="inline-flex items-center text-xs text-zinc-400 hover:text-zinc-800 dark:text-zinc-500 dark:hover:text-zinc-200 transition-colors group/link"
                 >
                   <AtSign className="mr-1 h-3 w-3 text-zinc-400 group-hover/link:text-zinc-600 dark:group-hover/link:text-zinc-300" />
@@ -241,7 +247,11 @@ export function CircleCard({
         </div>
 
         {/* 右側アクション & サマリー & 順序変更 & 開閉トグル */}
-        <div className="flex items-center gap-1 flex-shrink-0">
+        <div
+          className="flex items-center gap-1 flex-shrink-0"
+          onTouchStart={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
           {totalCount > 0 && (
             <span
               className={cn(
