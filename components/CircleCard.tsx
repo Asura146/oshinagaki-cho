@@ -65,7 +65,7 @@ export function CircleCard({
   onLongPress,
 }: CircleCardProps) {
   const router = useRouter();
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [, startTransition] = useTransition();
 
   // 長押し検知・誤操作防止タイマー
