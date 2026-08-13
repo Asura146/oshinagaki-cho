@@ -41,6 +41,8 @@ interface CircleActionMenuProps {
     space: string | null;
     twitterId: string | null;
     memo: string | null;
+    avatarPath?: string | null;
+    priority?: string;
   };
   eventId: string;
 }
@@ -184,6 +186,23 @@ export function CircleActionMenu({ circle, eventId }: CircleActionMenuProps) {
                   disabled={isLoading}
                   className="h-9 border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
                 />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor={`circle-priority-${circle.id}`} className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                  巡回優先度
+                </Label>
+                <select
+                  id={`circle-priority-${circle.id}`}
+                  name="priority"
+                  defaultValue={circle.priority || 'medium'}
+                  disabled={isLoading}
+                  className="h-9 w-full rounded-md border border-zinc-200 bg-white px-3 text-xs text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50"
+                >
+                  <option value="high">🔴 高（最優先）</option>
+                  <option value="medium">🟡 中（通常）</option>
+                  <option value="low">⚪ 低（余裕があれば）</option>
+                </select>
               </div>
 
               <div className="space-y-1.5">
