@@ -35,6 +35,7 @@ export function CircleListContainer({
   const [list, setList] = useState(circleList);
   const [isReorderOpen, setIsReorderOpen] = useState(false);
   const [selectedPriorities, setSelectedPriorities] = useState<string[]>(['high', 'medium', 'low']);
+  const [hideCompleted, setHideCompleted] = useState(false);
 
   useEffect(() => {
     setList(circleList);
@@ -48,9 +49,16 @@ export function CircleListContainer({
     );
   };
 
+  const isCircleCompleted = (circleId: string) => {
+    const items = circleItemsMap.get(circleId) || [];
+    return items.length > 0 && items.every((i) => i.checked);
+  };
+
   const filteredList = list.filter((circle) => {
     const p = circle.priority || 'medium';
-    return selectedPriorities.includes(p);
+    if (!selectedPriorities.includes(p)) return false;
+    if (hideCompleted && isCircleCompleted(circle.id)) return false;
+    return true;
   });
 
   const handleMove = (index: number, direction: 'up' | 'down') => {
@@ -85,8 +93,8 @@ export function CircleListContainer({
     <div className="space-y-4">
       {/* 絞り込みフィルター＆並べ替えツールバー */}
       <div className="flex items-center justify-between gap-1.5 sm:gap-2 px-1">
-        {/* 優先順位フィルターチェックボックス */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        {/* 優先順位フィルターチェックボックス & 完了済み非表示 */}
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
           <span className="text-[11px] sm:text-xs font-semibold text-zinc-500 dark:text-zinc-400 flex-shrink-0">
             絞り込み:
           </span>
@@ -121,6 +129,19 @@ export function CircleListContainer({
             />
             <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
               低
+            </span>
+          </label>
+
+          {/* 完了済み非表示トグル */}
+          <label className="inline-flex items-center gap-1 cursor-pointer text-xs font-medium text-zinc-700 dark:text-zinc-300 border-l border-zinc-200 dark:border-zinc-800 pl-2 ml-0.5">
+            <input
+              type="checkbox"
+              checked={hideCompleted}
+              onChange={(e) => setHideCompleted(e.target.checked)}
+              className="h-3.5 w-3.5 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500 accent-zinc-900 dark:accent-zinc-100 cursor-pointer"
+            />
+            <span className="text-[11px] sm:text-xs font-semibold text-zinc-600 dark:text-zinc-400 whitespace-nowrap">
+              完了を非表示
             </span>
           </label>
         </div>
