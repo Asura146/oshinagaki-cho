@@ -95,7 +95,7 @@ export function CircleListContainer({
               type="checkbox"
               checked={selectedPriorities.includes('high')}
               onChange={() => togglePriorityFilter('high')}
-              className="h-3.5 w-3.5 rounded border-zinc-300 text-red-600 focus:ring-red-500 accent-red-600 dark:border-zinc-700 dark:bg-zinc-900 cursor-pointer"
+              className="h-3.5 w-3.5 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500 accent-zinc-900 dark:accent-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 cursor-pointer"
             />
             <span className="inline-flex items-center rounded border border-red-200 bg-red-50 px-1.5 py-0.2 text-[10px] font-bold text-red-600 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-400">
               高
@@ -106,7 +106,7 @@ export function CircleListContainer({
               type="checkbox"
               checked={selectedPriorities.includes('medium')}
               onChange={() => togglePriorityFilter('medium')}
-              className="h-3.5 w-3.5 rounded border-zinc-300 text-amber-600 focus:ring-amber-500 accent-amber-600 dark:border-zinc-700 dark:bg-zinc-900 cursor-pointer"
+              className="h-3.5 w-3.5 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500 accent-zinc-900 dark:accent-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 cursor-pointer"
             />
             <span className="inline-flex items-center rounded border border-amber-200 bg-amber-50 px-1.5 py-0.2 text-[10px] font-semibold text-amber-600 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-400">
               中
@@ -117,7 +117,7 @@ export function CircleListContainer({
               type="checkbox"
               checked={selectedPriorities.includes('low')}
               onChange={() => togglePriorityFilter('low')}
-              className="h-3.5 w-3.5 rounded border-zinc-300 text-zinc-600 focus:ring-zinc-500 accent-zinc-600 dark:border-zinc-700 dark:bg-zinc-900 cursor-pointer"
+              className="h-3.5 w-3.5 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500 accent-zinc-900 dark:accent-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 cursor-pointer"
             />
             <span className="inline-flex items-center rounded border border-zinc-200 bg-zinc-100 px-1.5 py-0.2 text-[10px] font-semibold text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
               低
