@@ -13,6 +13,7 @@ const createCircleSchema = z.object({
   space: z.string().optional().nullable().transform((val) => (!val || val.trim() === '' ? null : val)),
   twitterId: z.string().optional().nullable().transform((val) => (!val || val.trim() === '' ? null : val)),
   memo: z.string().optional().nullable().transform((val) => (!val || val.trim() === '' ? null : val)),
+  priority: z.enum(['high', 'medium', 'low']).optional().default('medium'),
 });
 
 const updateCircleSchema = z.object({
@@ -22,6 +23,7 @@ const updateCircleSchema = z.object({
   space: z.string().optional().nullable().transform((val) => (!val || val.trim() === '' ? null : val)),
   twitterId: z.string().optional().nullable().transform((val) => (!val || val.trim() === '' ? null : val)),
   memo: z.string().optional().nullable().transform((val) => (!val || val.trim() === '' ? null : val)),
+  priority: z.enum(['high', 'medium', 'low']).optional().default('medium'),
 });
 
 async function processAvatarFile(file: File | null, userId: string, circleId: string, supabase: any): Promise<string | null> {
@@ -70,6 +72,7 @@ export async function createCircle(formData: FormData) {
       space: formData.get('space'),
       twitterId: formData.get('twitterId'),
       memo: formData.get('memo'),
+      priority: formData.get('priority') || 'medium',
     };
 
     const validated = createCircleSchema.safeParse(rawData);
@@ -100,6 +103,7 @@ export async function createCircle(formData: FormData) {
       twitterId: validated.data.twitterId,
       memo: validated.data.memo,
       avatarPath: avatarPath,
+      priority: validated.data.priority,
       orderIndex: maxOrderIndex + 1,
     });
 
@@ -132,6 +136,7 @@ export async function updateCircle(formData: FormData) {
       space: formData.get('space'),
       twitterId: formData.get('twitterId'),
       memo: formData.get('memo'),
+      priority: formData.get('priority') || 'medium',
     };
 
     const validated = updateCircleSchema.safeParse(rawData);
@@ -150,6 +155,7 @@ export async function updateCircle(formData: FormData) {
       space: validated.data.space,
       twitterId: validated.data.twitterId,
       memo: validated.data.memo,
+      priority: validated.data.priority,
       updatedAt: new Date(),
     };
 
