@@ -3,7 +3,7 @@
 import { useState, useEffect, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toggleAllItemsInCircle } from '@/app/actions/items';
-import { MapPin, AtSign, ChevronDown, ChevronUp } from 'lucide-react';
+import { MapPin, AtSign, ChevronDown, ChevronUp, ArrowUp, ArrowDown } from 'lucide-react';
 import { CircleActionMenu } from '@/components/CircleActionMenu';
 import { CreateItemDialog } from '@/components/CreateItemDialog';
 import { ItemRow } from '@/components/ItemRow';
@@ -32,6 +32,10 @@ interface CircleCardProps {
     id: string;
     storagePath: string;
   }>;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+  isFirst?: boolean;
+  isLast?: boolean;
 }
 
 function getTwitterUrlAndHandle(input: string) {
@@ -48,7 +52,16 @@ function getTwitterUrlAndHandle(input: string) {
   };
 }
 
-export function CircleCard({ circle, eventId, items, images }: CircleCardProps) {
+export function CircleCard({
+  circle,
+  eventId,
+  items,
+  images,
+  onMoveUp,
+  onMoveDown,
+  isFirst,
+  isLast,
+}: CircleCardProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(true);
   const [, startTransition] = useTransition();
@@ -162,12 +175,12 @@ export function CircleCard({ circle, eventId, items, images }: CircleCardProps) 
           </div>
         </div>
 
-        {/* 右側アクション & サマリー & 開閉トグル */}
-        <div className="flex items-center gap-1.5 flex-shrink-0">
+        {/* 右側アクション & サマリー & 順序変更 & 開閉トグル */}
+        <div className="flex items-center gap-1 flex-shrink-0">
           {totalCount > 0 && (
             <span
               className={cn(
-                'text-[11px] font-medium px-2 py-0.5 rounded-full border transition-colors',
+                'text-[11px] font-medium px-2 py-0.5 rounded-full border transition-colors mr-0.5',
                 isAllChecked
                   ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/40'
                   : 'bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700'
@@ -175,6 +188,33 @@ export function CircleCard({ circle, eventId, items, images }: CircleCardProps) 
             >
               {checkedCount}/{totalCount}完了
             </span>
+          )}
+
+          {onMoveUp && onMoveDown && (
+            <div className="flex items-center gap-0.5">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                disabled={isFirst}
+                onClick={onMoveUp}
+                className="h-7 w-7 text-zinc-400 hover:text-zinc-900 dark:text-zinc-500 dark:hover:text-zinc-100 cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
+                title="上へ移動"
+              >
+                <ArrowUp className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                disabled={isLast}
+                onClick={onMoveDown}
+                className="h-7 w-7 text-zinc-400 hover:text-zinc-900 dark:text-zinc-500 dark:hover:text-zinc-100 cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
+                title="下へ移動"
+              >
+                <ArrowDown className="h-3.5 w-3.5" />
+              </Button>
+            </div>
           )}
 
           <CircleActionMenu circle={circle} eventId={eventId} />

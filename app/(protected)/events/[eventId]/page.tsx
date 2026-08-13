@@ -3,10 +3,10 @@ import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/db';
 import { events, circles, items, oshinagakiImages } from '@/lib/db/schema';
-import { eq, and, inArray } from 'drizzle-orm';
+import { eq, and, inArray, asc } from 'drizzle-orm';
 import { ArrowLeft, Calendar, Store } from 'lucide-react';
 import { CreateCircleDialog } from '@/components/CreateCircleDialog';
-import { CircleCard } from '@/components/CircleCard';
+import { CircleListContainer } from '@/components/CircleListContainer';
 
 interface EventDetailPageProps {
   params: Promise<{
@@ -39,11 +39,12 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
 
   const event = eventList[0];
 
-  // サークル一覧の取得
+  // サークル一覧の取得 (orderIndex 昇順)
   const circleList = await db
     .select()
     .from(circles)
-    .where(and(eq(circles.eventId, eventId), eq(circles.userId, user.id)));
+    .where(and(eq(circles.eventId, eventId), eq(circles.userId, user.id)))
+    .orderBy(asc(circles.orderIndex), asc(circles.createdAt));
 
   const circleIds = circleList.map((c) => c.id);
 
@@ -167,21 +168,12 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
           </div>
 
           {circleList.length > 0 ? (
-            <div className="space-y-4">
-              {circleList.map((circle) => {
-                const itemsForCircle = circleItemsMap.get(circle.id) || [];
-                const imagesForCircle = circleOshinagakiImagesMap.get(circle.id) || [];
-                return (
-                  <CircleCard
-                    key={circle.id}
-                    circle={circle}
-                    eventId={eventId}
-                    items={itemsForCircle}
-                    images={imagesForCircle}
-                  />
-                );
-              })}
-            </div>
+            <CircleListContainer
+              eventId={eventId}
+              circleList={circleList}
+              circleItemsMap={circleItemsMap}
+              circleOshinagakiImagesMap={circleOshinagakiImagesMap}
+            />
           ) : (
             <div className="rounded-xl border border-dashed border-zinc-200 py-12 text-center dark:border-zinc-800">
               <Store className="mx-auto h-8 w-8 text-zinc-400" />
