@@ -63,23 +63,21 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
 
 
 
-  // サークルごとにアイテムとお品書き画像をグループ化
-  const circleItemsMap = new Map<string, typeof itemList>();
-  const circleOshinagakiImagesMap = new Map<string, typeof allOshinagakiImages>();
+  // サークルごとにアイテムとお品書き画像をグループ化 (Plain Object)
+  const circleItemsMap: Record<string, typeof itemList> = {};
+  const circleOshinagakiImagesMap: Record<string, typeof allOshinagakiImages> = {};
   circleList.forEach((c) => {
-    circleItemsMap.set(c.id, []);
-    circleOshinagakiImagesMap.set(c.id, []);
+    circleItemsMap[c.id] = [];
+    circleOshinagakiImagesMap[c.id] = [];
   });
   itemList.forEach((item) => {
-    const list = circleItemsMap.get(item.circleId);
-    if (list) {
-      list.push(item);
+    if (circleItemsMap[item.circleId]) {
+      circleItemsMap[item.circleId].push(item);
     }
   });
   allOshinagakiImages.forEach((img) => {
-    const list = circleOshinagakiImagesMap.get(img.circleId);
-    if (list) {
-      list.push(img);
+    if (circleOshinagakiImagesMap[img.circleId]) {
+      circleOshinagakiImagesMap[img.circleId].push(img);
     }
   });
 

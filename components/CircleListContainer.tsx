@@ -25,8 +25,8 @@ interface CircleListContainerProps {
     priority?: string | null;
     orderIndex: number;
   }>;
-  circleItemsMap: Map<string, Array<any>>;
-  circleOshinagakiImagesMap: Map<string, Array<any>>;
+  circleItemsMap: Record<string, Array<any>>;
+  circleOshinagakiImagesMap: Record<string, Array<any>>;
 }
 
 export function CircleListContainer({
@@ -43,19 +43,19 @@ export function CircleListContainer({
   const [selectedPriorities, setSelectedPriorities] = useState<string[]>(['high', 'medium', 'low']);
   const [hideCompleted, setHideCompleted] = useState(false);
 
-  // リアルタイム集計用のアイテム状態 Map
-  const [itemsMap, setItemsMap] = useState(circleItemsMap);
+  // リアルタイム集計用のアイテム状態
+  const [itemsRecord, setItemsRecord] = useState<Record<string, Array<any>>>(circleItemsMap);
 
   useEffect(() => {
     setList(circleList);
-    setItemsMap(circleItemsMap);
+    setItemsRecord(circleItemsMap);
   }, [circleList, circleItemsMap]);
 
   // 集計計算 (全サークルの全アイテムを走査)
   let totalBudget = 0;
   let spentBudget = 0;
-  itemsMap.forEach((items) => {
-    items.forEach((item) => {
+  Object.values(itemsRecord || {}).forEach((items) => {
+    (items || []).forEach((item) => {
       const itemTotal = item.price * item.qty;
       totalBudget += itemTotal;
       if (item.checked) {
@@ -73,7 +73,7 @@ export function CircleListContainer({
   };
 
   const isCircleCompleted = (circleId: string) => {
-    const items = itemsMap.get(circleId) || [];
+    const items = itemsRecord[circleId] || [];
     return items.length > 0 && items.every((i) => i.checked);
   };
 
@@ -265,8 +265,8 @@ export function CircleListContainer({
             ) : (
               filteredList.map((circle) => {
                 const originalIndex = list.findIndex((c) => c.id === circle.id);
-                const itemsForCircle = itemsMap.get(circle.id) || [];
-                const imagesForCircle = circleOshinagakiImagesMap.get(circle.id) || [];
+                const itemsForCircle = itemsRecord[circle.id] || [];
+                const imagesForCircle = circleOshinagakiImagesMap[circle.id] || [];
                 return (
                   <CircleCard
                     key={circle.id}
@@ -280,11 +280,10 @@ export function CircleListContainer({
                     isLast={originalIndex === list.length - 1}
                     isMoving={movingCircleId === circle.id}
                     onItemsChange={(updatedItems) => {
-                      setItemsMap((prevMap) => {
-                        const newMap = new Map(prevMap);
-                        newMap.set(circle.id, updatedItems);
-                        return newMap;
-                      });
+                      setItemsRecord((prev) => ({
+                        ...prev,
+                        [circle.id]: updatedItems,
+                      }));
                     }}
                   />
                 );
