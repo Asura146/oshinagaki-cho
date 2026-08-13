@@ -20,6 +20,7 @@ interface CircleItem {
   name: string;
   space: string | null;
   avatarPath: string | null;
+  priority?: string | null;
 }
 
 interface ReorderCirclesDialogProps {
@@ -138,13 +139,30 @@ export function ReorderCirclesDialog({
                   </div>
                 )}
 
-                <div className="flex items-center gap-2 min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 min-w-0 flex-1">
                   {circle.space && (
                     <span className="inline-flex items-center rounded border border-zinc-200 bg-zinc-100 px-1.5 py-0.2 text-[11px] font-semibold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 flex-shrink-0">
                       <MapPin className="mr-0.5 h-2.5 w-2.5" />
                       {circle.space}
                     </span>
                   )}
+
+                  {circle.priority === 'high' && (
+                    <span className="inline-flex items-center rounded border border-red-200 bg-red-50 px-1 py-0.2 text-[10px] font-bold text-red-600 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-400 flex-shrink-0">
+                      高
+                    </span>
+                  )}
+                  {circle.priority === 'low' && (
+                    <span className="inline-flex items-center rounded border border-zinc-200 bg-zinc-100 px-1 py-0.2 text-[10px] font-semibold text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 flex-shrink-0">
+                      低
+                    </span>
+                  )}
+                  {(!circle.priority || circle.priority === 'medium') && (
+                    <span className="inline-flex items-center rounded border border-amber-200 bg-amber-50 px-1 py-0.2 text-[10px] font-semibold text-amber-600 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-400 flex-shrink-0">
+                      中
+                    </span>
+                  )}
+
                   <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 truncate">
                     {circle.name}
                   </span>

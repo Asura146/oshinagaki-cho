@@ -42,7 +42,7 @@ interface CircleActionMenuProps {
     twitterId: string | null;
     memo: string | null;
     avatarPath?: string | null;
-    priority?: string;
+    priority?: string | null;
   };
   eventId: string;
 }
