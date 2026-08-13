@@ -70,10 +70,7 @@ export function CircleListContainer({
     <div className="space-y-4">
       {/* 順序変更ツールバーボタン（補足ガイド） */}
       {list.length > 1 && (
-        <div className="flex items-center justify-between px-1">
-          <span className="text-[11px] text-zinc-400 dark:text-zinc-500">
-            💡 サークルカードを長押しで順番を入れ替えられます
-          </span>
+        <div className="flex items-center justify-end px-1">
           <Button
             type="button"
             variant="ghost"
