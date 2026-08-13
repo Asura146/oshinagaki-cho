@@ -84,13 +84,13 @@ export function CircleListContainer({
   return (
     <div className="space-y-4">
       {/* 絞り込みフィルター＆並べ替えツールバー */}
-      <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+      <div className="flex items-center justify-between gap-1.5 sm:gap-2 px-1">
         {/* 優先順位フィルターチェックボックス */}
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <span className="text-[11px] sm:text-xs font-semibold text-zinc-500 dark:text-zinc-400 flex-shrink-0">
             絞り込み:
           </span>
-          <label className="inline-flex items-center gap-1.5 cursor-pointer text-xs font-medium text-zinc-700 dark:text-zinc-300">
+          <label className="inline-flex items-center gap-1 cursor-pointer text-xs font-medium text-zinc-700 dark:text-zinc-300">
             <input
               type="checkbox"
               checked={selectedPriorities.includes('high')}
@@ -101,7 +101,7 @@ export function CircleListContainer({
               高
             </span>
           </label>
-          <label className="inline-flex items-center gap-1.5 cursor-pointer text-xs font-medium text-zinc-700 dark:text-zinc-300">
+          <label className="inline-flex items-center gap-1 cursor-pointer text-xs font-medium text-zinc-700 dark:text-zinc-300">
             <input
               type="checkbox"
               checked={selectedPriorities.includes('medium')}
@@ -112,7 +112,7 @@ export function CircleListContainer({
               中
             </span>
           </label>
-          <label className="inline-flex items-center gap-1.5 cursor-pointer text-xs font-medium text-zinc-700 dark:text-zinc-300">
+          <label className="inline-flex items-center gap-1 cursor-pointer text-xs font-medium text-zinc-700 dark:text-zinc-300">
             <input
               type="checkbox"
               checked={selectedPriorities.includes('low')}

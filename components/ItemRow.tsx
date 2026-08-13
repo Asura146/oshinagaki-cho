@@ -115,21 +115,21 @@ export function ItemRow({ item, eventId }: ItemRowProps) {
     <>
       <div
         className={cn(
-          'flex items-center justify-between py-2 text-sm border-b border-zinc-100 last:border-0 dark:border-zinc-800/60 transition-all duration-150',
+          'flex items-center justify-between py-2 text-sm border-b border-zinc-100 last:border-0 dark:border-zinc-800/60 transition-all duration-150 gap-1.5',
           isChecked && 'opacity-50'
         )}
       >
-        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
           <input
             type="checkbox"
             checked={isChecked}
             onChange={handleToggle}
             disabled={isDeleting || isLoading}
-            className="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 cursor-pointer accent-zinc-900 dark:accent-zinc-100"
+            className="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 cursor-pointer accent-zinc-900 dark:accent-zinc-100 flex-shrink-0"
           />
           <span
             className={cn(
-              'font-medium truncate text-zinc-800 dark:text-zinc-200 transition-all duration-150',
+              'font-medium truncate text-xs sm:text-sm text-zinc-800 dark:text-zinc-200 transition-all duration-150',
               isChecked && 'line-through text-zinc-400 dark:text-zinc-500'
             )}
           >
@@ -137,14 +137,14 @@ export function ItemRow({ item, eventId }: ItemRowProps) {
           </span>
         </div>
 
-        <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
-          <div className="text-right text-xs mr-1">
+        <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0 ml-1">
+          <div className="text-right text-[11px] sm:text-xs mr-0.5">
             <span className="font-semibold text-zinc-900 dark:text-zinc-100">
               ¥{totalPrice.toLocaleString()}
             </span>
             {item.qty > 1 && (
-              <span className="ml-1 text-zinc-400">
-                (¥{item.price.toLocaleString()} × {item.qty})
+              <span className="ml-0.5 text-zinc-400">
+                (×{item.qty})
               </span>
             )}
           </div>
@@ -155,9 +155,9 @@ export function ItemRow({ item, eventId }: ItemRowProps) {
             size="icon-xs"
             disabled={isDeleting || isLoading}
             onClick={() => setIsEditDialogOpen(true)}
-            className="h-7 w-7 text-zinc-400 hover:text-zinc-900 dark:text-zinc-500 dark:hover:text-zinc-100"
+            className="h-6 w-6 sm:h-7 sm:w-7 text-zinc-400 hover:text-zinc-900 dark:text-zinc-500 dark:hover:text-zinc-100"
           >
-            <Pencil className="h-3.5 w-3.5" />
+            <Pencil className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
           </Button>
 
           <Button
@@ -166,9 +166,9 @@ export function ItemRow({ item, eventId }: ItemRowProps) {
             size="icon-xs"
             disabled={isDeleting || isLoading}
             onClick={() => setIsDeleteDialogOpen(true)}
-            className="h-7 w-7 text-zinc-400 hover:text-red-600 dark:text-zinc-500 dark:hover:text-red-400"
+            className="h-6 w-6 sm:h-7 sm:w-7 text-zinc-400 hover:text-red-600 dark:text-zinc-500 dark:hover:text-red-400"
           >
-            <Trash2 className="h-3.5 w-3.5" />
+            <Trash2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
           </Button>
         </div>
       </div>

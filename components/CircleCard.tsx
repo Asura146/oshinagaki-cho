@@ -186,9 +186,9 @@ export function CircleCard({
       )}
     >
       {/* サークルヘッダー */}
-      <div className="flex items-start justify-between p-5 pb-3 select-none">
+      <div className="flex items-start justify-between p-3.5 sm:p-5 pb-3 select-none gap-1 sm:gap-2">
         <div
-          className="flex items-start gap-3 flex-1 min-w-0 pr-2 cursor-pointer"
+          className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0 pr-1 cursor-pointer"
           onTouchStart={(e) => startPress(e.touches[0].clientX, e.touches[0].clientY)}
           onTouchMove={(e) => movePress(e.touches[0].clientX, e.touches[0].clientY)}
           onTouchEnd={cancelPress}
@@ -225,41 +225,41 @@ export function CircleCard({
             <img
               src={circle.avatarPath}
               alt={circle.name}
-              className="h-9 w-9 rounded-full object-cover border border-zinc-200 dark:border-zinc-700 flex-shrink-0 mt-0.5"
+              className="h-8 w-8 sm:h-9 sm:w-9 rounded-full object-cover border border-zinc-200 dark:border-zinc-700 flex-shrink-0 mt-0.5"
             />
           ) : (
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-500 font-semibold text-xs flex-shrink-0 border border-zinc-200 dark:border-zinc-700 mt-0.5">
+            <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-500 font-semibold text-xs flex-shrink-0 border border-zinc-200 dark:border-zinc-700 mt-0.5">
               {circle.name.substring(0, 1)}
             </div>
           )}
 
           <div className="space-y-0.5 min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
               {circle.space && (
-                <span className="inline-flex items-center rounded border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-xs font-semibold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
-                  <MapPin className="mr-1 h-3 w-3" />
+                <span className="inline-flex items-center rounded border border-zinc-200 bg-zinc-100 px-1.5 sm:px-2 py-0.5 text-[11px] sm:text-xs font-semibold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                  <MapPin className="mr-0.5 sm:mr-1 h-3 w-3" />
                   {circle.space}
                 </span>
               )}
 
               {/* 優先度バッジ */}
               {circle.priority === 'high' && (
-                <span className="inline-flex items-center rounded border border-red-200 bg-red-50 px-1.5 py-0.5 text-[11px] font-bold text-red-600 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-400">
+                <span className="inline-flex items-center rounded border border-red-200 bg-red-50 px-1.5 py-0.5 text-[10px] sm:text-[11px] font-bold text-red-600 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-400">
                   高
                 </span>
               )}
               {circle.priority === 'low' && (
-                <span className="inline-flex items-center rounded border border-zinc-200 bg-zinc-100 px-1.5 py-0.5 text-[11px] font-semibold text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
+                <span className="inline-flex items-center rounded border border-zinc-200 bg-zinc-100 px-1.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
                   低
                 </span>
               )}
               {(!circle.priority || circle.priority === 'medium') && (
-                <span className="inline-flex items-center rounded border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[11px] font-semibold text-amber-600 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-400">
+                <span className="inline-flex items-center rounded border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-amber-600 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-400">
                   中
                 </span>
               )}
 
-              <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-50 truncate">
+              <h3 className="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-50 truncate">
                 {circle.name}
               </h3>
             </div>
@@ -291,14 +291,14 @@ export function CircleCard({
 
         {/* 右側アクション & サマリー & 順序変更 & 開閉トグル */}
         <div
-          className="flex items-center gap-1 flex-shrink-0"
+          className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0"
           onTouchStart={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
         >
           {totalCount > 0 && (
             <span
               className={cn(
-                'text-[11px] font-medium px-2 py-0.5 rounded-full border transition-colors mr-0.5',
+                'text-[10px] sm:text-[11px] font-medium px-1.5 sm:px-2 py-0.5 rounded-full border transition-colors mr-0.5',
                 isAllChecked
                   ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/40'
                   : 'bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700'
@@ -316,10 +316,10 @@ export function CircleCard({
                 size="icon-xs"
                 disabled={isFirst}
                 onClick={onMoveUp}
-                className="h-7 w-7 text-zinc-400 hover:text-zinc-900 dark:text-zinc-500 dark:hover:text-zinc-100 cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
+                className="h-6 w-6 sm:h-7 sm:w-7 text-zinc-400 hover:text-zinc-900 dark:text-zinc-500 dark:hover:text-zinc-100 cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
                 title="上へ移動"
               >
-                <ArrowUp className="h-3.5 w-3.5" />
+                <ArrowUp className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
               </Button>
               <Button
                 type="button"
@@ -327,10 +327,10 @@ export function CircleCard({
                 size="icon-xs"
                 disabled={isLast}
                 onClick={onMoveDown}
-                className="h-7 w-7 text-zinc-400 hover:text-zinc-900 dark:text-zinc-500 dark:hover:text-zinc-100 cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
+                className="h-6 w-6 sm:h-7 sm:w-7 text-zinc-400 hover:text-zinc-900 dark:text-zinc-500 dark:hover:text-zinc-100 cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
                 title="下へ移動"
               >
-                <ArrowDown className="h-3.5 w-3.5" />
+                <ArrowDown className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
               </Button>
             </div>
           )}
@@ -342,17 +342,17 @@ export function CircleCard({
             variant="ghost"
             size="icon-xs"
             onClick={() => setIsOpen(!isOpen)}
-            className="h-7 w-7 text-zinc-400 hover:text-zinc-900 dark:text-zinc-500 dark:hover:text-zinc-100 cursor-pointer"
+            className="h-6 w-6 sm:h-7 sm:w-7 text-zinc-400 hover:text-zinc-900 dark:text-zinc-500 dark:hover:text-zinc-100 cursor-pointer"
             title={isOpen ? '折りたたむ' : '展開する'}
           >
-            {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            {isOpen ? <ChevronUp className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : <ChevronDown className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
           </Button>
         </div>
       </div>
 
       {/* 開閉コンテンツエリア */}
       {isOpen && (
-        <div className="px-5 pb-5 pt-1 border-t border-zinc-100 dark:border-zinc-800/80">
+        <div className="px-3.5 sm:px-5 pb-4 sm:pb-5 pt-1 border-t border-zinc-100 dark:border-zinc-800/80">
           {/* アイテムリスト */}
           <div className="mt-2">
             {localItems.length > 0 ? (
