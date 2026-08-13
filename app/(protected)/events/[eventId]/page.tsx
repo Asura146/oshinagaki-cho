@@ -62,17 +62,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
       ])
     : [[], []];
 
-  // 集計計算
-  let totalBudget = 0;
-  let spentBudget = 0;
 
-  itemList.forEach((item) => {
-    const itemTotal = item.price * item.qty;
-    totalBudget += itemTotal;
-    if (item.checked) {
-      spentBudget += itemTotal;
-    }
-  });
 
   // サークルごとにアイテムとお品書き画像をグループ化
   const circleItemsMap = new Map<string, typeof itemList>();
@@ -123,34 +113,6 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                 {event.memo}
               </p>
             )}
-          </div>
-
-          {/* 集計サマリー */}
-          <div className="mt-6 grid grid-cols-3 gap-3 rounded-lg border border-zinc-100 bg-zinc-50/60 p-4 dark:border-zinc-800/80 dark:bg-zinc-950/40">
-            <div className="text-center">
-              <span className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
-                サークル数
-              </span>
-              <span className="mt-1 block text-lg font-bold text-zinc-900 dark:text-zinc-100">
-                {circleList.length}
-              </span>
-            </div>
-            <div className="border-x border-zinc-200/60 text-center dark:border-zinc-800/60">
-              <span className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
-                予定合計
-              </span>
-              <span className="mt-1 block text-lg font-bold text-zinc-900 dark:text-zinc-100">
-                ¥{totalBudget.toLocaleString()}
-              </span>
-            </div>
-            <div className="text-center">
-              <span className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
-                購入済み
-              </span>
-              <span className="mt-1 block text-lg font-bold text-emerald-600 dark:text-emerald-400">
-                ¥{spentBudget.toLocaleString()}
-              </span>
-            </div>
           </div>
         </div>
 

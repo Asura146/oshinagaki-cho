@@ -36,9 +36,10 @@ interface ItemRowProps {
     checked: boolean;
   };
   eventId: string;
+  onToggle?: (nextChecked: boolean) => void;
 }
 
-export function ItemRow({ item, eventId }: ItemRowProps) {
+export function ItemRow({ item, eventId, onToggle }: ItemRowProps) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -60,14 +61,20 @@ export function ItemRow({ item, eventId }: ItemRowProps) {
     const previous = isChecked;
     const next = !previous;
 
-    // 1. 即座に (0ms) ローカルUIを反転更新
+    // 1. 即座に (0ms) ローカルUIを反転更新 ＆ 親へ通知
     setIsChecked(next);
+    if (onToggle) {
+      onToggle(next);
+    }
 
     // 2. バックグラウンドでサーバーへ送信 & 画面同期
     startTransition(async () => {
       const result = await toggleItemChecked(item.id, eventId, previous);
       if (!result.ok) {
         setIsChecked(previous);
+        if (onToggle) {
+          onToggle(previous);
+        }
         alert(result.error || '状態の更新に失敗しました');
       }
     });
