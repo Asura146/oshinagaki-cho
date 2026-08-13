@@ -99,7 +99,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
   });
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 px-4 py-12 font-sans dark:bg-zinc-950">
+    <div className="flex min-h-screen items-start justify-center bg-zinc-50 px-4 py-6 sm:py-10 font-sans dark:bg-zinc-950">
       <main className="w-full max-w-2xl">
         {/* 戻るボタン */}
         <Link
