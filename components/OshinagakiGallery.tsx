@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { uploadOshinagakiImage, deleteOshinagakiImage } from '@/app/actions/oshinagaki';
 import { Button } from '@/components/ui/button';
@@ -26,11 +26,12 @@ interface OshinagakiGalleryProps {
 export function OshinagakiGallery({ circleId, eventId, images }: OshinagakiGalleryProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [, startTransition] = useTransition();
   const [isUploading, setIsUploading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -40,32 +41,34 @@ export function OshinagakiGallery({ circleId, eventId, images }: OshinagakiGalle
     formData.append('eventId', eventId);
     formData.append('imageFile', file);
 
-    const result = await uploadOshinagakiImage(formData);
-
-    if (result.ok) {
-      router.refresh();
-    } else {
-      alert(result.error || '画像のアップロードに失敗しました');
-    }
-
-    setIsUploading(false);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    startTransition(async () => {
+      const result = await uploadOshinagakiImage(formData);
+      if (result.ok) {
+        router.refresh();
+      } else {
+        alert(result.error || '画像のアップロードに失敗しました');
+      }
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    });
   };
 
-  const handleDelete = async (imageId: string, e: React.MouseEvent) => {
+  const handleDelete = (imageId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!confirm('このお品書き画像を削除しますか？')) return;
 
     setDeletingId(imageId);
-    const result = await deleteOshinagakiImage(imageId, eventId);
-    if (result.ok) {
-      router.refresh();
-    } else {
-      alert(result.error || '画像の削除に失敗しました');
-    }
-    setDeletingId(null);
+    startTransition(async () => {
+      const result = await deleteOshinagakiImage(imageId, eventId);
+      if (result.ok) {
+        router.refresh();
+      } else {
+        alert(result.error || '画像の削除に失敗しました');
+      }
+      setDeletingId(null);
+    });
   };
 
   return (
