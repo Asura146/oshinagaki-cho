@@ -58,7 +58,7 @@ export async function createEvent(formData: FormData) {
     if (!validated.success) {
       return {
         ok: false,
-        error: validated.error.errors.map((e) => e.message).join(', '),
+        error: validated.error.issues.map((e) => e.message).join(', '),
       };
     }
 
@@ -101,7 +101,7 @@ export async function updateEvent(formData: FormData) {
     if (!validated.success) {
       return {
         ok: false,
-        error: validated.error.errors.map((e) => e.message).join(', '),
+        error: validated.error.issues.map((e) => e.message).join(', '),
       };
     }
 

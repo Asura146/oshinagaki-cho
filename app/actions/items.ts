@@ -47,7 +47,7 @@ export async function createItem(formData: FormData) {
     if (!validated.success) {
       return {
         ok: false,
-        error: validated.error.errors.map((e) => e.message).join(', '),
+        error: validated.error.issues.map((e) => e.message).join(', '),
       };
     }
 
@@ -94,7 +94,7 @@ export async function updateItem(formData: FormData) {
     if (!validated.success) {
       return {
         ok: false,
-        error: validated.error.errors.map((e) => e.message).join(', '),
+        error: validated.error.issues.map((e) => e.message).join(', '),
       };
     }
 
