@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useTransition, useRef } from 'react';
 import { toggleAllItemsInCircle } from '@/app/actions/items';
-import { MapPin, AtSign, ChevronDown, ChevronUp, ArrowUp, ArrowDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MapPin, AtSign, ChevronDown, ChevronUp, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { CircleActionMenu } from '@/components/CircleActionMenu';
 import { CreateItemDialog } from '@/components/CreateItemDialog';
 import { ItemRow } from '@/components/ItemRow';
@@ -51,7 +51,9 @@ interface CircleCardProps {
   onMoveDown?: () => void;
   isFirst?: boolean;
   isLast?: boolean;
+  isMoving?: boolean;
   onLongPress?: () => void;
+  onItemsChange?: (items: Array<any>) => void;
 }
 
 function getTwitterUrlAndHandle(input: string) {
@@ -77,7 +79,9 @@ export function CircleCard({
   onMoveDown,
   isFirst,
   isLast,
+  isMoving,
   onLongPress,
+  onItemsChange,
 }: CircleCardProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [, startTransition] = useTransition();
@@ -151,6 +155,13 @@ export function CircleCard({
     setLocalItems(items);
   }, [items]);
 
+  const updateLocalItems = (newItems: typeof items) => {
+    setLocalItems(newItems);
+    if (onItemsChange) {
+      onItemsChange(newItems);
+    }
+  };
+
   const totalCount = localItems.length;
   const checkedCount = localItems.filter((i) => i.checked).length;
   const isAllChecked = totalCount > 0 && checkedCount === totalCount;
@@ -160,15 +171,16 @@ export function CircleCard({
     if (totalCount === 0) return;
     const previous = localItems;
     const targetChecked = !isAllChecked;
+    const updated = previous.map((item) => ({ ...item, checked: targetChecked }));
 
-    // 1. 即座に (0ms) 全ローカルアイテムの checked 状態を一括更新
-    setLocalItems(previous.map((item) => ({ ...item, checked: targetChecked })));
+    // 1. 即座に (0ms) 全ローカルアイテムの checked 状態を一括更新 ＆ 親へ通知
+    updateLocalItems(updated);
 
     // 2. バックグラウンドでサーバー同期
     startTransition(async () => {
       const result = await toggleAllItemsInCircle(circle.id, eventId, targetChecked);
       if (!result.ok) {
-        setLocalItems(previous);
+        updateLocalItems(previous);
         alert(result.error || '一括状態更新に失敗しました');
       }
     });
@@ -310,23 +322,23 @@ export function CircleCard({
                 type="button"
                 variant="ghost"
                 size="icon-xs"
-                disabled={isFirst}
+                disabled={isFirst || isMoving}
                 onClick={onMoveUp}
                 className="h-6 w-6 sm:h-7 sm:w-7 text-zinc-400 hover:text-zinc-900 dark:text-zinc-500 dark:hover:text-zinc-100 cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
                 title="上へ移動"
               >
-                <ArrowUp className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                {isMoving ? <Loader2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 animate-spin" /> : <ArrowUp className="h-3 w-3 sm:h-3.5 sm:w-3.5" />}
               </Button>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon-xs"
-                disabled={isLast}
+                disabled={isLast || isMoving}
                 onClick={onMoveDown}
                 className="h-6 w-6 sm:h-7 sm:w-7 text-zinc-400 hover:text-zinc-900 dark:text-zinc-500 dark:hover:text-zinc-100 cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
                 title="下へ移動"
               >
-                <ArrowDown className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                {isMoving ? <Loader2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 animate-spin" /> : <ArrowDown className="h-3 w-3 sm:h-3.5 sm:w-3.5" />}
               </Button>
             </div>
           )}
@@ -354,7 +366,17 @@ export function CircleCard({
             {localItems.length > 0 ? (
               <div className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
                 {localItems.map((item) => (
-                  <ItemRow key={item.id} item={item} eventId={eventId} />
+                  <ItemRow
+                    key={item.id}
+                    item={item}
+                    eventId={eventId}
+                    onToggle={(nextChecked) => {
+                      const updated = localItems.map((i) =>
+                        i.id === item.id ? { ...i, checked: nextChecked } : i
+                      );
+                      updateLocalItems(updated);
+                    }}
+                  />
                 ))}
               </div>
             ) : (
