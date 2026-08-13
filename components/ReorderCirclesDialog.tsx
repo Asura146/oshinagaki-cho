@@ -84,8 +84,8 @@ export function ReorderCirclesDialog({
       const orderedIds = items.map((c) => c.id);
       const result = await reorderCircles(eventId, orderedIds);
       if (result.ok) {
-        onOpenChange(false);
         router.refresh();
+        onOpenChange(false);
       } else {
         alert(result.error || '順序の保存に失敗しました');
       }
