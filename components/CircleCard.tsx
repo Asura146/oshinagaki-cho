@@ -15,6 +15,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 
 interface CircleCardProps {
@@ -75,6 +84,7 @@ export function CircleCard({
   const [isOpen, setIsOpen] = useState(false);
   const [, startTransition] = useTransition();
   const [previewImageIndex, setPreviewImageIndex] = useState<number | null>(null);
+  const [showNoImageAlert, setShowNoImageAlert] = useState(false);
 
   // 長押し検知・誤操作防止タイマー
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -89,7 +99,7 @@ export function CircleCard({
     if (images && images.length > 0) {
       setPreviewImageIndex(0);
     } else {
-      alert('お品書き画像が登録されていません');
+      setShowNoImageAlert(true);
     }
   };
 
@@ -416,6 +426,28 @@ export function CircleCard({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* お品書き画像未登録時の案内モーダル */}
+      <AlertDialog open={showNoImageAlert} onOpenChange={setShowNoImageAlert}>
+        <AlertDialogContent className="max-w-sm border-zinc-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-900 sm:rounded-xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base font-bold text-zinc-900 dark:text-zinc-50">
+              お品書き画像がありません
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
+              {circle.name} にはお品書き画像がまだ登録されていません。カードを展開して画像を追加できます。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => setShowNoImageAlert(false)}
+              className="bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200 text-xs font-semibold cursor-pointer"
+            >
+              OK
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
