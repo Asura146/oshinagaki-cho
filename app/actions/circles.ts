@@ -84,6 +84,13 @@ export async function createCircle(formData: FormData) {
     const tempCircleId = crypto.randomUUID();
     const avatarPath = await processAvatarFile(avatarFile, user.id, tempCircleId, supabase);
 
+    const existingCircles = await db
+      .select({ orderIndex: circles.orderIndex })
+      .from(circles)
+      .where(and(eq(circles.eventId, validated.data.eventId), eq(circles.userId, user.id)));
+
+    const maxOrderIndex = existingCircles.reduce((max, c) => Math.max(max, c.orderIndex), -1);
+
     await db.insert(circles).values({
       id: tempCircleId,
       eventId: validated.data.eventId,
@@ -93,6 +100,7 @@ export async function createCircle(formData: FormData) {
       twitterId: validated.data.twitterId,
       memo: validated.data.memo,
       avatarPath: avatarPath,
+      orderIndex: maxOrderIndex + 1,
     });
 
     revalidatePath(`/events/${validated.data.eventId}`);
@@ -191,5 +199,36 @@ export async function deleteCircle(circleId: string, eventId: string) {
   } catch (error) {
     console.error('Failed to delete circle:', error);
     return { ok: false, error: 'サークルの削除に失敗しました。' };
+  }
+}
+
+export async function reorderCircles(eventId: string, orderedCircleIds: string[]) {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return { ok: false, error: '認証が必要です。ログインし直してください。' };
+    }
+
+    await Promise.all(
+      orderedCircleIds.map((id, index) =>
+        db
+          .update(circles)
+          .set({ orderIndex: index, updatedAt: new Date() })
+          .where(and(eq(circles.id, id), eq(circles.userId, user.id)))
+      )
+    );
+
+    revalidatePath(`/events/${eventId}`);
+    revalidatePath('/', 'layout');
+
+    return { ok: true };
+  } catch (error) {
+    console.error('Failed to reorder circles:', error);
+    return { ok: false, error: '順序の変更に失敗しました。' };
   }
 }
