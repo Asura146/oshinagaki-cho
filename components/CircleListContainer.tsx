@@ -17,6 +17,7 @@ interface CircleListContainerProps {
     twitterId: string | null;
     memo: string | null;
     avatarPath: string | null;
+    priority?: string | null;
     orderIndex: number;
   }>;
   circleItemsMap: Map<string, Array<any>>;
@@ -33,10 +34,24 @@ export function CircleListContainer({
   const [, startTransition] = useTransition();
   const [list, setList] = useState(circleList);
   const [isReorderOpen, setIsReorderOpen] = useState(false);
+  const [selectedPriorities, setSelectedPriorities] = useState<string[]>(['high', 'medium', 'low']);
 
   useEffect(() => {
     setList(circleList);
   }, [circleList]);
+
+  const togglePriorityFilter = (priority: string) => {
+    setSelectedPriorities((prev) =>
+      prev.includes(priority)
+        ? prev.filter((p) => p !== priority)
+        : [...prev, priority]
+    );
+  };
+
+  const filteredList = list.filter((circle) => {
+    const p = circle.priority || 'medium';
+    return selectedPriorities.includes(p);
+  });
 
   const handleMove = (index: number, direction: 'up' | 'down') => {
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
@@ -68,9 +83,50 @@ export function CircleListContainer({
 
   return (
     <div className="space-y-4">
-      {/* 順序変更ツールバーボタン（補足ガイド） */}
-      {list.length > 1 && (
-        <div className="flex items-center justify-end px-1">
+      {/* 絞り込みフィルター＆並べ替えツールバー */}
+      <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+        {/* 優先順位フィルターチェックボックス */}
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+            絞り込み:
+          </span>
+          <label className="inline-flex items-center gap-1.5 cursor-pointer text-xs font-medium text-zinc-700 dark:text-zinc-300">
+            <input
+              type="checkbox"
+              checked={selectedPriorities.includes('high')}
+              onChange={() => togglePriorityFilter('high')}
+              className="h-3.5 w-3.5 rounded border-zinc-300 text-red-600 focus:ring-red-500 accent-red-600 dark:border-zinc-700 dark:bg-zinc-900 cursor-pointer"
+            />
+            <span className="inline-flex items-center rounded border border-red-200 bg-red-50 px-1.5 py-0.2 text-[10px] font-bold text-red-600 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-400">
+              高
+            </span>
+          </label>
+          <label className="inline-flex items-center gap-1.5 cursor-pointer text-xs font-medium text-zinc-700 dark:text-zinc-300">
+            <input
+              type="checkbox"
+              checked={selectedPriorities.includes('medium')}
+              onChange={() => togglePriorityFilter('medium')}
+              className="h-3.5 w-3.5 rounded border-zinc-300 text-amber-600 focus:ring-amber-500 accent-amber-600 dark:border-zinc-700 dark:bg-zinc-900 cursor-pointer"
+            />
+            <span className="inline-flex items-center rounded border border-amber-200 bg-amber-50 px-1.5 py-0.2 text-[10px] font-semibold text-amber-600 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-400">
+              中
+            </span>
+          </label>
+          <label className="inline-flex items-center gap-1.5 cursor-pointer text-xs font-medium text-zinc-700 dark:text-zinc-300">
+            <input
+              type="checkbox"
+              checked={selectedPriorities.includes('low')}
+              onChange={() => togglePriorityFilter('low')}
+              className="h-3.5 w-3.5 rounded border-zinc-300 text-zinc-600 focus:ring-zinc-500 accent-zinc-600 dark:border-zinc-700 dark:bg-zinc-900 cursor-pointer"
+            />
+            <span className="inline-flex items-center rounded border border-zinc-200 bg-zinc-100 px-1.5 py-0.2 text-[10px] font-semibold text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
+              低
+            </span>
+          </label>
+        </div>
+
+        {/* 順序変更ボタン */}
+        {list.length > 1 && (
           <Button
             type="button"
             variant="ghost"
@@ -81,28 +137,37 @@ export function CircleListContainer({
             <ArrowUpDown className="mr-1 h-3 w-3" />
             並べ替え
           </Button>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* サークルカード一覧 */}
-      {list.map((circle, index) => {
-        const itemsForCircle = circleItemsMap.get(circle.id) || [];
-        const imagesForCircle = circleOshinagakiImagesMap.get(circle.id) || [];
-        return (
-          <CircleCard
-            key={circle.id}
-            circle={circle}
-            eventId={eventId}
-            items={itemsForCircle}
-            images={imagesForCircle}
-            onMoveUp={() => handleMove(index, 'up')}
-            onMoveDown={() => handleMove(index, 'down')}
-            isFirst={index === 0}
-            isLast={index === list.length - 1}
-            onLongPress={() => setIsReorderOpen(true)}
-          />
-        );
-      })}
+      {filteredList.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-zinc-200 py-8 text-center dark:border-zinc-800">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            選択した優先度のサークルはありません
+          </p>
+        </div>
+      ) : (
+        filteredList.map((circle) => {
+          const originalIndex = list.findIndex((c) => c.id === circle.id);
+          const itemsForCircle = circleItemsMap.get(circle.id) || [];
+          const imagesForCircle = circleOshinagakiImagesMap.get(circle.id) || [];
+          return (
+            <CircleCard
+              key={circle.id}
+              circle={circle}
+              eventId={eventId}
+              items={itemsForCircle}
+              images={imagesForCircle}
+              onMoveUp={() => handleMove(originalIndex, 'up')}
+              onMoveDown={() => handleMove(originalIndex, 'down')}
+              isFirst={originalIndex === 0}
+              isLast={originalIndex === list.length - 1}
+              onLongPress={() => setIsReorderOpen(true)}
+            />
+          );
+        })
+      )}
 
       {/* 長押し・ボタン起動の並べ替え専用モーダル */}
       <ReorderCirclesDialog
