@@ -217,8 +217,14 @@ export function CircleCard({
             </div>
           )}
 
-          <div className="space-y-0.5 min-w-0 flex-1">
-            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+          <div className="space-y-1 min-w-0 flex-1">
+            {/* 1行目: サークル名 */}
+            <h3 className="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-50 truncate">
+              {circle.name}
+            </h3>
+
+            {/* 2行目: サークル属性（配置スペース、優先度、Twitter） */}
+            <div className="flex flex-wrap items-center gap-1.5 text-xs">
               {circle.space && (
                 <span className="inline-flex items-center shrink-0 rounded border border-zinc-200 bg-zinc-100 px-1.5 sm:px-2 py-0.5 text-[11px] sm:text-xs font-semibold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
                   <MapPin className="mr-0.5 sm:mr-1 h-3 w-3 shrink-0" />
@@ -243,30 +249,27 @@ export function CircleCard({
                 </span>
               )}
 
-              <h3 className="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-50 truncate min-w-0 flex-1">
-                {circle.name}
-              </h3>
+              {circle.twitterId && (() => {
+                const { url, handle } = getTwitterUrlAndHandle(circle.twitterId);
+                return (
+                  <a
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    className="inline-flex items-center text-xs text-zinc-400 hover:text-zinc-800 dark:text-zinc-500 dark:hover:text-zinc-200 transition-colors group/link"
+                  >
+                    <span className="underline-offset-2 group-hover/link:underline">{handle}</span>
+                  </a>
+                );
+              })()}
             </div>
 
-            {circle.twitterId && (() => {
-              const { url, handle } = getTwitterUrlAndHandle(circle.twitterId);
-              return (
-                <a
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  onTouchStart={(e) => e.stopPropagation()}
-                  onMouseDown={(e) => e.stopPropagation()}
-                  className="inline-flex items-center text-xs text-zinc-400 hover:text-zinc-800 dark:text-zinc-500 dark:hover:text-zinc-200 transition-colors group/link"
-                >
-                  <span className="underline-offset-2 group-hover/link:underline">{handle}</span>
-                </a>
-              );
-            })()}
-
+            {/* 3行目: メモ */}
             {circle.memo && (
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed pt-0.5">
                 {circle.memo}
               </p>
             )}
