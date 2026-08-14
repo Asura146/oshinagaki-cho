@@ -156,11 +156,17 @@ export function CircleCard({
         isAllChecked && 'bg-zinc-50/70 dark:bg-zinc-950/40'
       )}
     >
-      {/* サークルヘッダー */}
-      <div className="flex items-start justify-between p-3.5 sm:p-5 pb-3 select-none gap-1 sm:gap-2">
+      {/* サークルヘッダー (全体クリックで展開・折りたたみ) */}
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-start justify-between p-3.5 sm:p-5 pb-3 select-none gap-1 sm:gap-2 cursor-pointer hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors"
+      >
         <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0 pr-1">
           {/* サークル一括チェックボックス ＆ お品書き画像拡大ボタン */}
-          <div className="pt-0.5 flex flex-col items-center gap-1.5 flex-shrink-0">
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="pt-0.5 flex flex-col items-center gap-1.5 flex-shrink-0"
+          >
             <input
               type="checkbox"
               checked={isAllChecked}
@@ -239,6 +245,7 @@ export function CircleCard({
                   href={url}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
                   onTouchStart={(e) => e.stopPropagation()}
                   onMouseDown={(e) => e.stopPropagation()}
                   className="inline-flex items-center text-xs text-zinc-400 hover:text-zinc-800 dark:text-zinc-500 dark:hover:text-zinc-200 transition-colors group/link"
@@ -259,6 +266,7 @@ export function CircleCard({
 
         {/* 右側アクション & サマリー & 順序変更 & 開閉トグル */}
         <div
+          onClick={(e) => e.stopPropagation()}
           className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0"
           onTouchStart={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
