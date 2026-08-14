@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "お品書き帳 - イベント巡回・買い物メモ",
-  description: "同人誌即売会やイベントでのサークル巡回、お品書き・買い物メモ管理アプリ",
+  title: "お品書き帳",
+  description: "同人誌即売会等の頒布物の管理用",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
