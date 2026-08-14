@@ -182,7 +182,7 @@ export function CircleCard({
               size="icon-sm"
               onClick={handleOpenImage}
               title={images && images.length > 0 ? 'お品書き画像を拡大' : 'お品書き画像なし'}
-              className="h-7 w-7 rounded-md p-0 bg-zinc-100/80 text-zinc-600 hover:bg-zinc-200 hover:text-zinc-900 dark:bg-zinc-800/80 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-zinc-100 cursor-pointer transition-colors mt-0.5"
+              className="h-7 w-7 rounded-md p-0  text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900  dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-zinc-100 cursor-pointer transition-colors mt-0.5"
             >
               <ZoomIn className="h-4.5 w-4.5" />
             </Button>
