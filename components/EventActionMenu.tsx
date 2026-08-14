@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
 import { updateEvent, deleteEvent } from '@/app/actions/events';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,7 +43,6 @@ interface EventActionMenuProps {
 }
 
 export function EventActionMenu({ event }: EventActionMenuProps) {
-  const router = useRouter();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -62,7 +60,6 @@ export function EventActionMenu({ event }: EventActionMenuProps) {
       const result = await updateEvent(formData);
       if (result.ok) {
         setIsEditDialogOpen(false);
-        router.refresh();
       } else {
         setError(result.error || 'イベントの更新に失敗しました');
       }
@@ -75,7 +72,6 @@ export function EventActionMenu({ event }: EventActionMenuProps) {
       const result = await deleteEvent(event.id);
       if (result.ok) {
         setIsDeleteDialogOpen(false);
-        router.refresh();
       } else {
         alert(result.error || 'イベントの削除に失敗しました');
       }

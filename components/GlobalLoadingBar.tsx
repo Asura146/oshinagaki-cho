@@ -10,6 +10,7 @@ export function GlobalLoadingBar() {
 
   useEffect(() => {
     // パスや検索パラメータが変化完了したらローディング終了
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(false);
   }, [pathname, searchParams]);
 

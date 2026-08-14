@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useTransition, useRef } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { toggleAllItemsInCircle } from '@/app/actions/items';
-import { MapPin, AtSign, ChevronDown, ChevronUp, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { MapPin, ZoomIn, ChevronDown, ChevronUp, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { CircleActionMenu } from '@/components/CircleActionMenu';
 import { CreateItemDialog } from '@/components/CreateItemDialog';
 import { ItemRow } from '@/components/ItemRow';
@@ -25,6 +25,14 @@ import {
 } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 
+interface Item {
+  id: string;
+  name: string;
+  price: number;
+  qty: number;
+  checked: boolean;
+}
+
 interface CircleCardProps {
   circle: {
     id: string;
@@ -36,13 +44,7 @@ interface CircleCardProps {
     priority?: string | null;
   };
   eventId: string;
-  items: Array<{
-    id: string;
-    name: string;
-    price: number;
-    qty: number;
-    checked: boolean;
-  }>;
+  items: Item[];
   images: Array<{
     id: string;
     storagePath: string;
@@ -53,13 +55,20 @@ interface CircleCardProps {
   isLast?: boolean;
   isMoving?: boolean;
   onLongPress?: () => void;
-  onItemsChange?: (items: Array<any>) => void;
+  onItemsChange?: (items: Item[]) => void;
 }
 
 function getTwitterUrlAndHandle(input: string) {
-  const trimmed = input.trim();
+  let trimmed = input.trim();
+  if (!trimmed) return { url: '#', handle: '' };
+
+  // http:// または https:// で始まっていないが x.com / twitter.com で始まる場合
+  if (/^(?:x\.com|twitter\.com)\//i.test(trimmed)) {
+    trimmed = `https://${trimmed}`;
+  }
+
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-    const handleMatch = trimmed.match(/(?:twitter\.com|x\.com)\/([a-zA-Z0-9_]+)/);
+    const handleMatch = trimmed.match(/(?:twitter\.com|x\.com)\/([a-zA-Z0-9_]+)/i);
     const handle = handleMatch ? `@${handleMatch[1]}` : trimmed;
     return { url: trimmed, handle };
   }
@@ -88,49 +97,12 @@ export function CircleCard({
   const [previewImageIndex, setPreviewImageIndex] = useState<number | null>(null);
   const [showNoImageAlert, setShowNoImageAlert] = useState(false);
 
-  // 長押し検知・誤操作防止タイマー
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const startPosRef = useRef<{ x: number; y: number } | null>(null);
-
-  const triggerLongPressAction = () => {
-    if (onLongPress) {
-      onLongPress();
-      return;
-    }
-
+  const handleOpenImage = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     if (images && images.length > 0) {
       setPreviewImageIndex(0);
     } else {
       setShowNoImageAlert(true);
-    }
-  };
-
-  const startPress = (x: number, y: number) => {
-    startPosRef.current = { x, y };
-    timerRef.current = setTimeout(() => {
-      if (typeof window !== 'undefined' && 'vibrate' in navigator) {
-        try {
-          navigator.vibrate(40);
-        } catch {}
-      }
-      triggerLongPressAction();
-    }, 500);
-  };
-
-  const cancelPress = () => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-  };
-
-  const movePress = (x: number, y: number) => {
-    if (!startPosRef.current) return;
-    const diffX = Math.abs(x - startPosRef.current.x);
-    const diffY = Math.abs(y - startPosRef.current.y);
-    // スクロール判定 (8px以上移動した場合は即座に長押しをキャンセル)
-    if (diffX > 8 || diffY > 8) {
-      cancelPress();
     }
   };
 
@@ -152,6 +124,7 @@ export function CircleCard({
   const [localItems, setLocalItems] = useState(items);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLocalItems(items);
   }, [items]);
 
@@ -190,27 +163,19 @@ export function CircleCard({
     <div
       className={cn(
         'overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900 transition-all duration-200',
-        isAllChecked && 'bg-zinc-50/70 dark:bg-zinc-950/40'
+        isAllChecked && 'bg-zinc-200 dark:bg-zinc-950/40'
       )}
     >
-      {/* サークルヘッダー */}
-      <div className="flex items-start justify-between p-3.5 sm:p-5 pb-3 select-none gap-1 sm:gap-2">
-        <div
-          className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0 pr-1 cursor-pointer"
-          onTouchStart={(e) => startPress(e.touches[0].clientX, e.touches[0].clientY)}
-          onTouchMove={(e) => movePress(e.touches[0].clientX, e.touches[0].clientY)}
-          onTouchEnd={cancelPress}
-          onTouchCancel={cancelPress}
-          onMouseDown={(e) => startPress(e.clientX, e.clientY)}
-          onMouseMove={(e) => movePress(e.clientX, e.clientY)}
-          onMouseUp={cancelPress}
-          onMouseLeave={cancelPress}
-        >
-          {/* サークル一括チェックボックス */}
+      {/* サークルヘッダー (全体クリックで展開・折りたたみ) */}
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-start justify-between p-3.5 sm:p-5 pb-3 select-none gap-1 sm:gap-2 cursor-pointer hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors"
+      >
+        <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0 pr-1">
+          {/* サークル一括チェックボックス ＆ お品書き画像拡大ボタン */}
           <div
-            className="pt-1 flex-shrink-0"
-            onTouchStart={(e) => e.stopPropagation()}
-            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+            className="pt-0.5 flex flex-col items-center gap-1.5 flex-shrink-0"
           >
             <input
               type="checkbox"
@@ -226,6 +191,17 @@ export function CircleCard({
               }
               className="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 cursor-pointer accent-zinc-900 dark:accent-zinc-100 disabled:opacity-30 disabled:cursor-not-allowed"
             />
+
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              onClick={handleOpenImage}
+              title={images && images.length > 0 ? 'お品書き画像を拡大' : 'お品書き画像なし'}
+              className="h-7 w-7 rounded-md p-0  text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900  dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-zinc-100 cursor-pointer transition-colors mt-0.5"
+            >
+              <ZoomIn className="h-4.5 w-4.5" />
+            </Button>
           </div>
 
           {circle.avatarPath ? (
@@ -241,56 +217,59 @@ export function CircleCard({
             </div>
           )}
 
-          <div className="space-y-0.5 min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+          <div className="space-y-1 min-w-0 flex-1">
+            {/* 1行目: サークル名 */}
+            <h3 className="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-50 truncate">
+              {circle.name}
+            </h3>
+
+            {/* 2行目: サークル属性（配置スペース、優先度、Twitter） */}
+            <div className="flex flex-wrap items-center gap-1.5 text-xs">
               {circle.space && (
-                <span className="inline-flex items-center rounded border border-zinc-200 bg-zinc-100 px-1.5 sm:px-2 py-0.5 text-[11px] sm:text-xs font-semibold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
-                  <MapPin className="mr-0.5 sm:mr-1 h-3 w-3" />
+                <span className="inline-flex items-center shrink-0 rounded border border-zinc-200 bg-zinc-100 px-1.5 sm:px-2 py-0.5 text-[11px] sm:text-xs font-semibold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                  <MapPin className="mr-0.5 sm:mr-1 h-3 w-3 shrink-0" />
                   {circle.space}
                 </span>
               )}
 
               {/* 優先度バッジ */}
               {circle.priority === 'high' && (
-                <span className="inline-flex items-center rounded border border-red-200 bg-red-50 px-1.5 py-0.5 text-[10px] sm:text-[11px] font-bold text-red-600 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-400">
+                <span className="inline-flex items-center shrink-0 rounded border border-red-200 bg-red-50 px-1.5 py-0.5 text-[10px] sm:text-[11px] font-bold text-red-600 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-400">
                   高
                 </span>
               )}
               {circle.priority === 'low' && (
-                <span className="inline-flex items-center rounded border border-zinc-200 bg-zinc-100 px-1.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
+                <span className="inline-flex items-center shrink-0 rounded border border-zinc-200 bg-zinc-100 px-1.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
                   低
                 </span>
               )}
               {(!circle.priority || circle.priority === 'medium') && (
-                <span className="inline-flex items-center rounded border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-amber-600 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-400">
+                <span className="inline-flex items-center shrink-0 rounded border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-amber-600 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-400">
                   中
                 </span>
               )}
 
-              <h3 className="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-50 truncate">
-                {circle.name}
-              </h3>
+              {circle.twitterId && (() => {
+                const { url, handle } = getTwitterUrlAndHandle(circle.twitterId);
+                return (
+                  <a
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    className="inline-flex items-center text-xs text-zinc-400 hover:text-zinc-800 dark:text-zinc-500 dark:hover:text-zinc-200 transition-colors group/link"
+                  >
+                    <span className="underline-offset-2 group-hover/link:underline">{handle}</span>
+                  </a>
+                );
+              })()}
             </div>
 
-            {circle.twitterId && (() => {
-              const { url, handle } = getTwitterUrlAndHandle(circle.twitterId);
-              return (
-                <a
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onTouchStart={(e) => e.stopPropagation()}
-                  onMouseDown={(e) => e.stopPropagation()}
-                  className="inline-flex items-center text-xs text-zinc-400 hover:text-zinc-800 dark:text-zinc-500 dark:hover:text-zinc-200 transition-colors group/link"
-                >
-                  <AtSign className="mr-1 h-3 w-3 text-zinc-400 group-hover/link:text-zinc-600 dark:group-hover/link:text-zinc-300" />
-                  <span className="underline-offset-2 group-hover/link:underline">{handle}</span>
-                </a>
-              );
-            })()}
-
+            {/* 3行目: メモ */}
             {circle.memo && (
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed pt-0.5">
                 {circle.memo}
               </p>
             )}
@@ -299,6 +278,7 @@ export function CircleCard({
 
         {/* 右側アクション & サマリー & 順序変更 & 開閉トグル */}
         <div
+          onClick={(e) => e.stopPropagation()}
           className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0"
           onTouchStart={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}

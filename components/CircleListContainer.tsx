@@ -8,6 +8,19 @@ import { Button } from '@/components/ui/button';
 import { ArrowUpDown, Loader2, Calendar, Store } from 'lucide-react';
 import { CreateCircleDialog } from '@/components/CreateCircleDialog';
 
+interface Item {
+  id: string;
+  name: string;
+  price: number;
+  qty: number;
+  checked: boolean;
+}
+
+interface OshinagakiImage {
+  id: string;
+  storagePath: string;
+}
+
 interface CircleListContainerProps {
   eventId: string;
   event: {
@@ -25,8 +38,8 @@ interface CircleListContainerProps {
     priority?: string | null;
     orderIndex: number;
   }>;
-  circleItemsMap: Record<string, Array<any>>;
-  circleOshinagakiImagesMap: Record<string, Array<any>>;
+  circleItemsMap: Record<string, Item[]>;
+  circleOshinagakiImagesMap: Record<string, OshinagakiImage[]>;
 }
 
 export function CircleListContainer({
@@ -44,9 +57,10 @@ export function CircleListContainer({
   const [hideCompleted, setHideCompleted] = useState(false);
 
   // リアルタイム集計用のアイテム状態
-  const [itemsRecord, setItemsRecord] = useState<Record<string, Array<any>>>(circleItemsMap);
+  const [itemsRecord, setItemsRecord] = useState<Record<string, Item[]>>(circleItemsMap);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setList(circleList);
     setItemsRecord(circleItemsMap);
   }, [circleList, circleItemsMap]);
@@ -299,7 +313,7 @@ export function CircleListContainer({
         onOpenChange={setIsReorderOpen}
         eventId={eventId}
         circles={list}
-        onReorderComplete={(newCircles) => setList(newCircles as any)}
+        onReorderComplete={(newCircles) => setList(newCircles as typeof list)}
       />
     </div>
   );

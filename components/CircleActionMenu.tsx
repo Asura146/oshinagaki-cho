@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
 import { updateCircle, deleteCircle } from '@/app/actions/circles';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,7 +47,6 @@ interface CircleActionMenuProps {
 }
 
 export function CircleActionMenu({ circle, eventId }: CircleActionMenuProps) {
-  const router = useRouter();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -66,7 +64,6 @@ export function CircleActionMenu({ circle, eventId }: CircleActionMenuProps) {
       const result = await updateCircle(formData);
       if (result.ok) {
         setIsEditDialogOpen(false);
-        router.refresh();
       } else {
         setError(result.error || 'サークル情報の更新に失敗しました');
       }
@@ -78,7 +75,6 @@ export function CircleActionMenu({ circle, eventId }: CircleActionMenuProps) {
       const result = await deleteCircle(circle.id, eventId);
       if (result.ok) {
         setIsDeleteDialogOpen(false);
-        router.refresh();
       } else {
         alert(result.error || 'サークルの削除に失敗しました');
       }
@@ -128,7 +124,7 @@ export function CircleActionMenu({ circle, eventId }: CircleActionMenuProps) {
               サークル情報の編集
             </DialogTitle>
             <DialogDescription className="text-sm text-zinc-500 dark:text-zinc-400">
-              配置スペース、サークル名、X/Twitter ID、メモを変更できます。
+              配置スペース、サークル名、X/Twitter (ID・URL)、メモを変更できます。
             </DialogDescription>
           </DialogHeader>
 
@@ -172,14 +168,14 @@ export function CircleActionMenu({ circle, eventId }: CircleActionMenuProps) {
 
               <div className="space-y-1.5">
                 <Label htmlFor={`circle-twitter-${circle.id}`} className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                  X / Twitter ID
+                  X / Twitter ID または URL
                 </Label>
                 <Input
                   id={`circle-twitter-${circle.id}`}
                   name="twitterId"
                   type="text"
                   defaultValue={circle.twitterId || ''}
-                  placeholder="例: @circle_account"
+                  placeholder="例: @circle_account や https://x.com/circle_account"
                   disabled={isPending}
                   className="h-9 border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
                 />

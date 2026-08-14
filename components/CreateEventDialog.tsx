@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
 import { createEvent } from '@/app/actions/events';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,7 +19,6 @@ import { Loader2, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function CreateEventDialog() {
-  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +32,6 @@ export function CreateEventDialog() {
       const result = await createEvent(formData);
       if (result.ok) {
         setIsOpen(false);
-        router.refresh();
       } else {
         setError(result.error || 'イベントの作成に失敗しました');
       }

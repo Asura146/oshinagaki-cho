@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
 import { toggleItemChecked, updateItem, deleteItem } from '@/app/actions/items';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,7 +39,6 @@ interface ItemRowProps {
 }
 
 export function ItemRow({ item, eventId, onToggle }: ItemRowProps) {
-  const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -53,7 +51,9 @@ export function ItemRow({ item, eventId, onToggle }: ItemRowProps) {
   const [isChecked, setIsChecked] = useState(item.checked);
 
   // サーバーの item.checked が変わったら同期
+  // サーバーの item.checked が変わったら同期
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsChecked(item.checked);
   }, [item.checked]);
 
@@ -93,7 +93,6 @@ export function ItemRow({ item, eventId, onToggle }: ItemRowProps) {
       const result = await updateItem(formData);
       if (result.ok) {
         setIsEditDialogOpen(false);
-        router.refresh();
         setIsLoading(false);
       } else {
         setError(result.error || 'アイテムの更新に失敗しました');
@@ -108,7 +107,6 @@ export function ItemRow({ item, eventId, onToggle }: ItemRowProps) {
       const result = await deleteItem(item.id, eventId);
       if (result.ok) {
         setIsDeleteDialogOpen(false);
-        router.refresh();
         setIsDeleting(false);
       } else {
         alert(result.error || 'アイテムの削除に失敗しました');
