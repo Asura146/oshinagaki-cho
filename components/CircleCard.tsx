@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useTransition } from 'react';
 import { toggleAllItemsInCircle } from '@/app/actions/items';
-import { MapPin, AtSign, ZoomIn, ChevronDown, ChevronUp, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { MapPin, ZoomIn, ChevronDown, ChevronUp, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { CircleActionMenu } from '@/components/CircleActionMenu';
 import { CreateItemDialog } from '@/components/CreateItemDialog';
 import { ItemRow } from '@/components/ItemRow';
@@ -260,7 +260,6 @@ export function CircleCard({
                   onMouseDown={(e) => e.stopPropagation()}
                   className="inline-flex items-center text-xs text-zinc-400 hover:text-zinc-800 dark:text-zinc-500 dark:hover:text-zinc-200 transition-colors group/link"
                 >
-                  <AtSign className="mr-1 h-3 w-3 text-zinc-400 group-hover/link:text-zinc-600 dark:group-hover/link:text-zinc-300" />
                   <span className="underline-offset-2 group-hover/link:underline">{handle}</span>
                 </a>
               );
