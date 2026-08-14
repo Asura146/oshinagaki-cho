@@ -299,6 +299,7 @@ export function CircleListContainer({
         onOpenChange={setIsReorderOpen}
         eventId={eventId}
         circles={list}
+        onReorderComplete={(newCircles) => setList(newCircles as any)}
       />
     </div>
   );

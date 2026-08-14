@@ -28,6 +28,7 @@ interface ReorderCirclesDialogProps {
   onOpenChange: (open: boolean) => void;
   eventId: string;
   circles: CircleItem[];
+  onReorderComplete?: (newItems: CircleItem[]) => void;
 }
 
 export function ReorderCirclesDialog({
@@ -35,6 +36,7 @@ export function ReorderCirclesDialog({
   onOpenChange,
   eventId,
   circles,
+  onReorderComplete,
 }: ReorderCirclesDialogProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -80,13 +82,23 @@ export function ReorderCirclesDialog({
   };
 
   const handleSave = () => {
+    const previousItems = circles;
+    const newItems = items;
+
+    // 1. 即座に (0ms) 親画面のリスト順序を更新しモーダルを閉じる
+    if (onReorderComplete) {
+      onReorderComplete(newItems);
+    }
+    onOpenChange(false);
+
+    // 2. バックグラウンドで DB に順序保存
     startTransition(async () => {
-      const orderedIds = items.map((c) => c.id);
+      const orderedIds = newItems.map((c) => c.id);
       const result = await reorderCircles(eventId, orderedIds);
-      if (result.ok) {
-        router.refresh();
-        onOpenChange(false);
-      } else {
+      if (!result.ok) {
+        if (onReorderComplete) {
+          onReorderComplete(previousItems);
+        }
         alert(result.error || '順序の保存に失敗しました');
       }
     });
