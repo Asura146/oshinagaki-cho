@@ -37,7 +37,7 @@ export function ReorderCirclesDialog({
   circles,
   onReorderComplete,
 }: ReorderCirclesDialogProps) {
-  const [, startTransition] = useTransition();
+  const [isPending, startTransition] = useTransition();
   const [items, setItems] = useState<CircleItem[]>(circles);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
