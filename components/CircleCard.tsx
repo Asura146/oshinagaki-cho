@@ -153,7 +153,7 @@ export function CircleCard({
     <div
       className={cn(
         'overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900 transition-all duration-200',
-        isAllChecked && 'bg-zinc-50/70 dark:bg-zinc-950/40'
+        isAllChecked && 'bg-zinc-200 dark:bg-zinc-950/40'
       )}
     >
       {/* サークルヘッダー (全体クリックで展開・折りたたみ) */}
