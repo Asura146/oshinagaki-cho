@@ -110,13 +110,13 @@ export function CreateCircleDialog({ eventId }: CreateCircleDialogProps) {
 
             <div className="space-y-1.5">
               <Label htmlFor="twitterId" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                X / Twitter ID
+                X / Twitter ID または URL
               </Label>
               <Input
                 id="twitterId"
                 name="twitterId"
                 type="text"
-                placeholder="例: @circle_account"
+                placeholder="例: @circle_account や https://x.com/circle_account"
                 disabled={isPending}
                 className="h-9 border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
               />

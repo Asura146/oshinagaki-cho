@@ -58,9 +58,16 @@ interface CircleCardProps {
 }
 
 function getTwitterUrlAndHandle(input: string) {
-  const trimmed = input.trim();
+  let trimmed = input.trim();
+  if (!trimmed) return { url: '#', handle: '' };
+
+  // http:// または https:// で始まっていないが x.com / twitter.com で始まる場合
+  if (/^(?:x\.com|twitter\.com)\//i.test(trimmed)) {
+    trimmed = `https://${trimmed}`;
+  }
+
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-    const handleMatch = trimmed.match(/(?:twitter\.com|x\.com)\/([a-zA-Z0-9_]+)/);
+    const handleMatch = trimmed.match(/(?:twitter\.com|x\.com)\/([a-zA-Z0-9_]+)/i);
     const handle = handleMatch ? `@${handleMatch[1]}` : trimmed;
     return { url: trimmed, handle };
   }
