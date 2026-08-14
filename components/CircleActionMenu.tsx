@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { updateCircle, deleteCircle } from '@/app/actions/circles';
+import { compressImage } from '@/lib/image-compression';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -52,20 +53,39 @@ export function CircleActionMenu({ circle, eventId }: CircleActionMenuProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  const handleEditSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
 
-    const formData = new FormData(e.currentTarget);
+    const formElement = e.currentTarget;
+    const formData = new FormData(formElement);
     formData.append('id', circle.id);
     formData.append('eventId', eventId);
 
+    const avatarFile = formData.get('avatarFile') as File | null;
+    if (avatarFile && avatarFile.size > 0) {
+      try {
+        const compressedAvatar = await compressImage(avatarFile, {
+          maxDimension: 600,
+          quality: 0.85,
+          mimeType: 'image/jpeg',
+        });
+        formData.set('avatarFile', compressedAvatar);
+      } catch (err) {
+        console.warn('Avatar compression failed, using original file:', err);
+      }
+    }
+
     startTransition(async () => {
-      const result = await updateCircle(formData);
-      if (result.ok) {
-        setIsEditDialogOpen(false);
-      } else {
-        setError(result.error || 'サークル情報の更新に失敗しました');
+      try {
+        const result = await updateCircle(formData);
+        if (result.ok) {
+          setIsEditDialogOpen(false);
+        } else {
+          setError(result.error || 'サークル情報の更新に失敗しました');
+        }
+      } catch {
+        setError('サークル情報の更新中にエラーが発生しました');
       }
     });
   };

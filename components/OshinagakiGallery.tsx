@@ -2,6 +2,7 @@
 
 import { useState, useRef, useTransition } from 'react';
 import { uploadOshinagakiImage, deleteOshinagakiImage } from '@/app/actions/oshinagaki';
+import { compressImage } from '@/lib/image-compression';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -29,28 +30,47 @@ export function OshinagakiGallery({ circleId, eventId, images }: OshinagakiGalle
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setIsUploading(true);
-    const formData = new FormData();
-    formData.append('circleId', circleId);
-    formData.append('eventId', eventId);
-    formData.append('imageFile', file);
 
-    startTransition(async () => {
-      const result = await uploadOshinagakiImage(formData);
-      if (result.ok) {
-        // do nothing
-      } else {
-        alert(result.error || '画像のアップロードに失敗しました');
-      }
+    try {
+      // 縦画像や高解像度写真をクライアント側で最適化（長辺最大1800px・JPEG品質0.85）
+      const compressedFile = await compressImage(file, {
+        maxDimension: 1800,
+        quality: 0.85,
+        mimeType: 'image/jpeg',
+      });
+
+      const formData = new FormData();
+      formData.append('circleId', circleId);
+      formData.append('eventId', eventId);
+      formData.append('imageFile', compressedFile);
+
+      startTransition(async () => {
+        try {
+          const result = await uploadOshinagakiImage(formData);
+          if (!result.ok) {
+            alert(result.error || '画像のアップロードに失敗しました');
+          }
+        } catch {
+          alert('画像のアップロード中にエラーが発生しました');
+        } finally {
+          setIsUploading(false);
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+        }
+      });
+    } catch {
+      alert('画像の処理に失敗しました');
       setIsUploading(false);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
-    });
+    }
   };
 
   const handleDelete = (imageId: string, e: React.MouseEvent) => {
