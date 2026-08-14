@@ -30,18 +30,29 @@ export async function uploadOshinagakiImage(formData: FormData) {
       return { ok: false, error: '画像ファイルを選択してください。' };
     }
 
-    // 5MB制限
-    if (file.size > 5 * 1024 * 1024) {
-      return { ok: false, error: '画像ファイルは5MB以下にしてください。' };
+    // 10MB制限（クライアント側で圧縮されますが、直接送信にも対応）
+    if (file.size > 10 * 1024 * 1024) {
+      return { ok: false, error: '画像ファイルは10MB以下にしてください。' };
     }
 
     const fileBuffer = await file.arrayBuffer();
     const base64 = Buffer.from(fileBuffer).toString('base64');
-    const mimeType = file.type || 'image/png';
+    
+    // MIMEタイプの解決（ブラウザによって空の場合があるためファイル拡張子からも判定）
+    let mimeType = file.type;
+    if (!mimeType || mimeType === 'application/octet-stream') {
+      const lowerName = file.name.toLowerCase();
+      if (lowerName.endsWith('.png')) mimeType = 'image/png';
+      else if (lowerName.endsWith('.webp')) mimeType = 'image/webp';
+      else if (lowerName.endsWith('.gif')) mimeType = 'image/gif';
+      else mimeType = 'image/jpeg';
+    }
+
     const dataUrl = `data:${mimeType};base64,${base64}`;
 
     let finalPath = dataUrl;
-    const filename = `${user.id}/${circleId}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '')}`;
+    const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '') || 'image.jpg';
+    const filename = `${user.id}/${circleId}/${Date.now()}_${sanitizedFileName}`;
 
     try {
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -55,9 +66,11 @@ export async function uploadOshinagakiImage(formData: FormData) {
         if (publicUrlData?.publicUrl) {
           finalPath = publicUrlData.publicUrl;
         }
+      } else if (uploadError) {
+        console.warn('Supabase Storage upload warning (falling back to Data URI):', uploadError.message);
       }
-    } catch {
-      // Storageが使えない場合でも Base64 Data URI で確実に保存
+    } catch (storageErr) {
+      console.warn('Supabase Storage unavailable, using Data URI fallback:', storageErr);
     }
 
     await db.insert(oshinagakiImages).values({

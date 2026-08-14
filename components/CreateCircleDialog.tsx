@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { createCircle } from '@/app/actions/circles';
+import { compressImage } from '@/lib/image-compression';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -27,18 +28,37 @@ export function CreateCircleDialog({ eventId }: CreateCircleDialogProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
-    const formData = new FormData(e.currentTarget);
+    const formElement = e.currentTarget;
+    const formData = new FormData(formElement);
     formData.append('eventId', eventId);
 
+    const avatarFile = formData.get('avatarFile') as File | null;
+    if (avatarFile && avatarFile.size > 0) {
+      try {
+        const compressedAvatar = await compressImage(avatarFile, {
+          maxDimension: 600,
+          quality: 0.85,
+          mimeType: 'image/jpeg',
+        });
+        formData.set('avatarFile', compressedAvatar);
+      } catch (err) {
+        console.warn('Avatar compression failed, using original file:', err);
+      }
+    }
+
     startTransition(async () => {
-      const result = await createCircle(formData);
-      if (result.ok) {
-        setIsOpen(false);
-      } else {
-        setError(result.error || 'サークルの追加に失敗しました');
+      try {
+        const result = await createCircle(formData);
+        if (result.ok) {
+          setIsOpen(false);
+        } else {
+          setError(result.error || 'サークルの追加に失敗しました');
+        }
+      } catch {
+        setError('サークルの追加中にエラーが発生しました');
       }
     });
   };
