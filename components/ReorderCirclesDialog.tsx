@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
 import { reorderCircles } from '@/app/actions/circles';
 import {
   Dialog,
@@ -38,13 +37,13 @@ export function ReorderCirclesDialog({
   circles,
   onReorderComplete,
 }: ReorderCirclesDialogProps) {
-  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [items, setItems] = useState<CircleItem[]>(circles);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setItems(circles);
     }
   }, [open, circles]);

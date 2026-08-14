@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
 import { uploadOshinagakiImage, deleteOshinagakiImage } from '@/app/actions/oshinagaki';
 import { Button } from '@/components/ui/button';
 import {
@@ -24,7 +23,6 @@ interface OshinagakiGalleryProps {
 }
 
 export function OshinagakiGallery({ circleId, eventId, images }: OshinagakiGalleryProps) {
-  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [, startTransition] = useTransition();
   const [isUploading, setIsUploading] = useState(false);
@@ -44,7 +42,7 @@ export function OshinagakiGallery({ circleId, eventId, images }: OshinagakiGalle
     startTransition(async () => {
       const result = await uploadOshinagakiImage(formData);
       if (result.ok) {
-        router.refresh();
+        // do nothing
       } else {
         alert(result.error || '画像のアップロードに失敗しました');
       }
@@ -63,7 +61,7 @@ export function OshinagakiGallery({ circleId, eventId, images }: OshinagakiGalle
     startTransition(async () => {
       const result = await deleteOshinagakiImage(imageId, eventId);
       if (result.ok) {
-        router.refresh();
+        // do nothing
       } else {
         alert(result.error || '画像の削除に失敗しました');
       }
