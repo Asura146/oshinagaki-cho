@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useTransition, useRef } from 'react';
 import { toggleAllItemsInCircle } from '@/app/actions/items';
-import { MapPin, AtSign, ChevronDown, ChevronUp, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { MapPin, AtSign, ChevronDown, ChevronUp, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Loader2, ZoomIn } from 'lucide-react';
 import { CircleActionMenu } from '@/components/CircleActionMenu';
 import { CreateItemDialog } from '@/components/CreateItemDialog';
 import { ItemRow } from '@/components/ItemRow';
@@ -88,49 +88,12 @@ export function CircleCard({
   const [previewImageIndex, setPreviewImageIndex] = useState<number | null>(null);
   const [showNoImageAlert, setShowNoImageAlert] = useState(false);
 
-  // 長押し検知・誤操作防止タイマー
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const startPosRef = useRef<{ x: number; y: number } | null>(null);
-
-  const triggerLongPressAction = () => {
-    if (onLongPress) {
-      onLongPress();
-      return;
-    }
-
+  const handleOpenImage = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     if (images && images.length > 0) {
       setPreviewImageIndex(0);
     } else {
       setShowNoImageAlert(true);
-    }
-  };
-
-  const startPress = (x: number, y: number) => {
-    startPosRef.current = { x, y };
-    timerRef.current = setTimeout(() => {
-      if (typeof window !== 'undefined' && 'vibrate' in navigator) {
-        try {
-          navigator.vibrate(40);
-        } catch {}
-      }
-      triggerLongPressAction();
-    }, 500);
-  };
-
-  const cancelPress = () => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-  };
-
-  const movePress = (x: number, y: number) => {
-    if (!startPosRef.current) return;
-    const diffX = Math.abs(x - startPosRef.current.x);
-    const diffY = Math.abs(y - startPosRef.current.y);
-    // スクロール判定 (8px以上移動した場合は即座に長押しをキャンセル)
-    if (diffX > 8 || diffY > 8) {
-      cancelPress();
     }
   };
 
@@ -195,23 +158,9 @@ export function CircleCard({
     >
       {/* サークルヘッダー */}
       <div className="flex items-start justify-between p-3.5 sm:p-5 pb-3 select-none gap-1 sm:gap-2">
-        <div
-          className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0 pr-1 cursor-pointer"
-          onTouchStart={(e) => startPress(e.touches[0].clientX, e.touches[0].clientY)}
-          onTouchMove={(e) => movePress(e.touches[0].clientX, e.touches[0].clientY)}
-          onTouchEnd={cancelPress}
-          onTouchCancel={cancelPress}
-          onMouseDown={(e) => startPress(e.clientX, e.clientY)}
-          onMouseMove={(e) => movePress(e.clientX, e.clientY)}
-          onMouseUp={cancelPress}
-          onMouseLeave={cancelPress}
-        >
-          {/* サークル一括チェックボックス */}
-          <div
-            className="pt-1 flex-shrink-0"
-            onTouchStart={(e) => e.stopPropagation()}
-            onMouseDown={(e) => e.stopPropagation()}
-          >
+        <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0 pr-1">
+          {/* サークル一括チェックボックス ＆ お品書き画像拡大ボタン */}
+          <div className="pt-0.5 flex flex-col items-center gap-1.5 flex-shrink-0">
             <input
               type="checkbox"
               checked={isAllChecked}
@@ -226,6 +175,17 @@ export function CircleCard({
               }
               className="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 cursor-pointer accent-zinc-900 dark:accent-zinc-100 disabled:opacity-30 disabled:cursor-not-allowed"
             />
+
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              onClick={handleOpenImage}
+              title={images && images.length > 0 ? 'お品書き画像を拡大' : 'お品書き画像なし'}
+              className="h-5 w-5 rounded p-0 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-800 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-200 cursor-pointer"
+            >
+              <ZoomIn className="h-3.5 w-3.5" />
+            </Button>
           </div>
 
           {circle.avatarPath ? (
