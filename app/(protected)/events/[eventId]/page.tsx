@@ -34,7 +34,7 @@ async function EventDataFetcher({ eventId, userId }: { eventId: string; userId: 
   }
 
   const { circles: fetchedCircles, ...event } = eventData;
-  const circleList = fetchedCircles.map(({ items, oshinagakiImages, ...circle }) => circle);
+  const circleList = fetchedCircles.map(({ items: _items, oshinagakiImages: _oshinagakiImages, ...circle }) => circle);
 
   const circleItemsMap: Record<string, typeof fetchedCircles[number]['items']> = {};
   const circleOshinagakiImagesMap: Record<string, typeof fetchedCircles[number]['oshinagakiImages']> = {};

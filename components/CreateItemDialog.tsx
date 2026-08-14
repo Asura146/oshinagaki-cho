@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
 import { createItem } from '@/app/actions/items';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,7 +23,6 @@ interface CreateItemDialogProps {
 }
 
 export function CreateItemDialog({ circleId, eventId }: CreateItemDialogProps) {
-  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +38,6 @@ export function CreateItemDialog({ circleId, eventId }: CreateItemDialogProps) {
       const result = await createItem(formData);
       if (result.ok) {
         setIsOpen(false);
-        router.refresh();
       } else {
         setError(result.error || 'アイテムの追加に失敗しました');
       }

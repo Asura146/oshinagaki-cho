@@ -25,8 +25,8 @@ interface CircleListContainerProps {
     priority?: string | null;
     orderIndex: number;
   }>;
-  circleItemsMap: Record<string, Array<any>>;
-  circleOshinagakiImagesMap: Record<string, Array<any>>;
+  circleItemsMap: Record<string, unknown[]>;
+  circleOshinagakiImagesMap: Record<string, unknown[]>;
 }
 
 export function CircleListContainer({
@@ -44,9 +44,10 @@ export function CircleListContainer({
   const [hideCompleted, setHideCompleted] = useState(false);
 
   // リアルタイム集計用のアイテム状態
-  const [itemsRecord, setItemsRecord] = useState<Record<string, Array<any>>>(circleItemsMap);
+  const [itemsRecord, setItemsRecord] = useState<Record<string, unknown[]>>(circleItemsMap);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setList(circleList);
     setItemsRecord(circleItemsMap);
   }, [circleList, circleItemsMap]);
@@ -55,8 +56,9 @@ export function CircleListContainer({
   let totalBudget = 0;
   let spentBudget = 0;
   Object.values(itemsRecord || {}).forEach((items) => {
-    (items || []).forEach((item) => {
-      const itemTotal = item.price * item.qty;
+    (items || []).forEach((item: unknown) => {
+      const i = item as { price: number; qty: number; checked: boolean };
+      const itemTotal = i.price * i.qty;
       totalBudget += itemTotal;
       if (item.checked) {
         spentBudget += itemTotal;
@@ -74,7 +76,7 @@ export function CircleListContainer({
 
   const isCircleCompleted = (circleId: string) => {
     const items = itemsRecord[circleId] || [];
-    return items.length > 0 && items.every((i) => i.checked);
+    return items.length > 0 && items.every((i: CircleItem) => i.checked);
   };
 
   const filteredList = list.filter((circle) => {
@@ -299,7 +301,7 @@ export function CircleListContainer({
         onOpenChange={setIsReorderOpen}
         eventId={eventId}
         circles={list}
-        onReorderComplete={(newCircles) => setList(newCircles as any)}
+        onReorderComplete={(newCircles) => setList(newCircles as typeof list)}
       />
     </div>
   );

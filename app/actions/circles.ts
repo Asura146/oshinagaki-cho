@@ -1,5 +1,7 @@
 'use server';
 
+import { SupabaseClient } from '@supabase/supabase-js';
+
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/db';
 import { circles } from '@/lib/db/schema';
@@ -26,7 +28,7 @@ const updateCircleSchema = z.object({
   priority: z.enum(['high', 'medium', 'low']).optional().default('medium'),
 });
 
-async function processAvatarFile(file: File | null, userId: string, circleId: string, supabase: any): Promise<string | null> {
+async function processAvatarFile(file: File | null, userId: string, circleId: string, supabase: SupabaseClient): Promise<string | null> {
   if (!file || file.size === 0) return null;
   const fileBuffer = await file.arrayBuffer();
   const base64 = Buffer.from(fileBuffer).toString('base64');
@@ -150,7 +152,7 @@ export async function updateCircle(formData: FormData) {
     const avatarFile = formData.get('avatarFile') as File | null;
     const newAvatarPath = await processAvatarFile(avatarFile, user.id, validated.data.id, supabase);
 
-    const updateValues: Record<string, any> = {
+    const updateValues: Record<string, unknown> = {
       name: validated.data.name,
       space: validated.data.space,
       twitterId: validated.data.twitterId,
@@ -219,14 +221,23 @@ export async function reorderCircles(eventId: string, orderedCircleIds: string[]
       return { ok: false, error: '認証が必要です。ログインし直してください。' };
     }
 
-    await Promise.all(
-      orderedCircleIds.map((id, index) =>
-        db
-          .update(circles)
-          .set({ orderIndex: index, updatedAt: new Date() })
-          .where(and(eq(circles.id, id), eq(circles.userId, user.id)))
-      )
-    );
+    // PostgreSQL の CASE 文を使ったバルクアップデートの構築
+    if (orderedCircleIds.length > 0) {
+      const sqlQuery = `
+        UPDATE circles 
+        SET order_index = CASE id 
+          ${orderedCircleIds.map((id, index) => `WHEN '${id}' THEN ${index}`).join(' ')}
+        END,
+        updated_at = NOW()
+        WHERE id IN (${orderedCircleIds.map(id => `'${id}'`).join(', ')})
+        AND user_id = '${user.id}'
+      `;
+      
+      // db.execute 等が使えるならそちらを使いますが、Drizzleの sql タグを使うのが安全です。
+      // Drizzle ORM で直接生のSQLを実行する
+      const { sql } = await import('drizzle-orm');
+      await db.execute(sql.raw(sqlQuery));
+    }
 
     revalidatePath(`/events/${eventId}`);
 

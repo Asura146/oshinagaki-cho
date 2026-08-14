@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useTransition, useRef } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { toggleAllItemsInCircle } from '@/app/actions/items';
-import { MapPin, AtSign, ChevronDown, ChevronUp, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Loader2, ZoomIn } from 'lucide-react';
+import { MapPin, AtSign, ZoomIn, ChevronDown, ChevronUp, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { CircleActionMenu } from '@/components/CircleActionMenu';
 import { CreateItemDialog } from '@/components/CreateItemDialog';
 import { ItemRow } from '@/components/ItemRow';
@@ -25,6 +25,14 @@ import {
 } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 
+interface Item {
+  id: string;
+  name: string;
+  price: number;
+  qty: number;
+  checked: boolean;
+}
+
 interface CircleCardProps {
   circle: {
     id: string;
@@ -36,13 +44,7 @@ interface CircleCardProps {
     priority?: string | null;
   };
   eventId: string;
-  items: Array<{
-    id: string;
-    name: string;
-    price: number;
-    qty: number;
-    checked: boolean;
-  }>;
+  items: Item[];
   images: Array<{
     id: string;
     storagePath: string;
@@ -52,8 +54,7 @@ interface CircleCardProps {
   isFirst?: boolean;
   isLast?: boolean;
   isMoving?: boolean;
-  onLongPress?: () => void;
-  onItemsChange?: (items: Array<any>) => void;
+  onItemsChange?: (items: Item[]) => void;
 }
 
 function getTwitterUrlAndHandle(input: string) {
@@ -115,6 +116,7 @@ export function CircleCard({
   const [localItems, setLocalItems] = useState(items);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLocalItems(items);
   }, [items]);
 

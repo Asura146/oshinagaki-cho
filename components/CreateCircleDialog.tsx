@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
 import { createCircle } from '@/app/actions/circles';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,7 +23,6 @@ interface CreateCircleDialogProps {
 }
 
 export function CreateCircleDialog({ eventId }: CreateCircleDialogProps) {
-  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +37,6 @@ export function CreateCircleDialog({ eventId }: CreateCircleDialogProps) {
       const result = await createCircle(formData);
       if (result.ok) {
         setIsOpen(false);
-        router.refresh();
       } else {
         setError(result.error || 'サークルの追加に失敗しました');
       }

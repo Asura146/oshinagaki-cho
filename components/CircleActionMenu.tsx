@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
 import { updateCircle, deleteCircle } from '@/app/actions/circles';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,7 +47,6 @@ interface CircleActionMenuProps {
 }
 
 export function CircleActionMenu({ circle, eventId }: CircleActionMenuProps) {
-  const router = useRouter();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -66,7 +64,6 @@ export function CircleActionMenu({ circle, eventId }: CircleActionMenuProps) {
       const result = await updateCircle(formData);
       if (result.ok) {
         setIsEditDialogOpen(false);
-        router.refresh();
       } else {
         setError(result.error || 'サークル情報の更新に失敗しました');
       }
@@ -78,7 +75,6 @@ export function CircleActionMenu({ circle, eventId }: CircleActionMenuProps) {
       const result = await deleteCircle(circle.id, eventId);
       if (result.ok) {
         setIsDeleteDialogOpen(false);
-        router.refresh();
       } else {
         alert(result.error || 'サークルの削除に失敗しました');
       }
