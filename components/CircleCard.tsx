@@ -54,6 +54,7 @@ interface CircleCardProps {
   isFirst?: boolean;
   isLast?: boolean;
   isMoving?: boolean;
+  onLongPress?: () => void;
   onItemsChange?: (items: Item[]) => void;
 }
 

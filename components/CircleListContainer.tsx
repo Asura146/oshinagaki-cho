@@ -8,6 +8,19 @@ import { Button } from '@/components/ui/button';
 import { ArrowUpDown, Loader2, Calendar, Store } from 'lucide-react';
 import { CreateCircleDialog } from '@/components/CreateCircleDialog';
 
+interface Item {
+  id: string;
+  name: string;
+  price: number;
+  qty: number;
+  checked: boolean;
+}
+
+interface OshinagakiImage {
+  id: string;
+  storagePath: string;
+}
+
 interface CircleListContainerProps {
   eventId: string;
   event: {
@@ -25,8 +38,8 @@ interface CircleListContainerProps {
     priority?: string | null;
     orderIndex: number;
   }>;
-  circleItemsMap: Record<string, unknown[]>;
-  circleOshinagakiImagesMap: Record<string, unknown[]>;
+  circleItemsMap: Record<string, Item[]>;
+  circleOshinagakiImagesMap: Record<string, OshinagakiImage[]>;
 }
 
 export function CircleListContainer({
@@ -44,7 +57,7 @@ export function CircleListContainer({
   const [hideCompleted, setHideCompleted] = useState(false);
 
   // リアルタイム集計用のアイテム状態
-  const [itemsRecord, setItemsRecord] = useState<Record<string, unknown[]>>(circleItemsMap);
+  const [itemsRecord, setItemsRecord] = useState<Record<string, Item[]>>(circleItemsMap);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -56,9 +69,8 @@ export function CircleListContainer({
   let totalBudget = 0;
   let spentBudget = 0;
   Object.values(itemsRecord || {}).forEach((items) => {
-    (items || []).forEach((item: unknown) => {
-      const i = item as { price: number; qty: number; checked: boolean };
-      const itemTotal = i.price * i.qty;
+    (items || []).forEach((item) => {
+      const itemTotal = item.price * item.qty;
       totalBudget += itemTotal;
       if (item.checked) {
         spentBudget += itemTotal;
@@ -76,7 +88,7 @@ export function CircleListContainer({
 
   const isCircleCompleted = (circleId: string) => {
     const items = itemsRecord[circleId] || [];
-    return items.length > 0 && items.every((i: CircleItem) => i.checked);
+    return items.length > 0 && items.every((i) => i.checked);
   };
 
   const filteredList = list.filter((circle) => {
