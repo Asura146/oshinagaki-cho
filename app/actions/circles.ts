@@ -32,7 +32,17 @@ async function processAvatarFile(file: File | null, userId: string, circleId: st
   if (!file || file.size === 0) return null;
   const fileBuffer = await file.arrayBuffer();
   const base64 = Buffer.from(fileBuffer).toString('base64');
-  const mimeType = file.type || 'image/png';
+  
+  // MIMEタイプの解決
+  let mimeType = file.type;
+  if (!mimeType || mimeType === 'application/octet-stream') {
+    const lowerName = file.name.toLowerCase();
+    if (lowerName.endsWith('.png')) mimeType = 'image/png';
+    else if (lowerName.endsWith('.webp')) mimeType = 'image/webp';
+    else if (lowerName.endsWith('.gif')) mimeType = 'image/gif';
+    else mimeType = 'image/jpeg';
+  }
+
   const dataUrl = `data:${mimeType};base64,${base64}`;
 
   let finalPath = dataUrl;
@@ -49,9 +59,11 @@ async function processAvatarFile(file: File | null, userId: string, circleId: st
       if (publicUrlData?.publicUrl) {
         finalPath = publicUrlData.publicUrl;
       }
+    } else if (uploadError) {
+      console.warn('Supabase Storage avatar upload warning (falling back to Data URI):', uploadError.message);
     }
-  } catch {
-    // Storage利用不可時のフォールバック
+  } catch (storageErr) {
+    console.warn('Supabase Storage unavailable for avatar, using Data URI fallback:', storageErr);
   }
   return finalPath;
 }
