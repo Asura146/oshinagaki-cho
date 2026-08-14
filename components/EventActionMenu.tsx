@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { updateEvent, deleteEvent } from '@/app/actions/events';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -47,43 +47,39 @@ export function EventActionMenu({ event }: EventActionMenuProps) {
   const router = useRouter();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
   // 編集フォームの送信
-  const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleEditSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
     setError(null);
 
     const formData = new FormData(e.currentTarget);
     formData.append('id', event.id);
 
-    const result = await updateEvent(formData);
-
-    if (result.ok) {
-      setIsEditDialogOpen(false);
-      router.refresh();
-      setIsLoading(false);
-    } else {
-      setError(result.error || 'イベントの更新に失敗しました');
-      setIsLoading(false);
-    }
+    startTransition(async () => {
+      const result = await updateEvent(formData);
+      if (result.ok) {
+        setIsEditDialogOpen(false);
+        router.refresh();
+      } else {
+        setError(result.error || 'イベントの更新に失敗しました');
+      }
+    });
   };
 
   // 削除の実行
-  const handleDeleteConfirm = async () => {
-    setIsLoading(true);
-    const result = await deleteEvent(event.id);
-
-    if (result.ok) {
-      setIsDeleteDialogOpen(false);
-      router.refresh();
-      setIsLoading(false);
-    } else {
-      alert(result.error || 'イベントの削除に失敗しました');
-      setIsLoading(false);
-    }
+  const handleDeleteConfirm = () => {
+    startTransition(async () => {
+      const result = await deleteEvent(event.id);
+      if (result.ok) {
+        setIsDeleteDialogOpen(false);
+        router.refresh();
+      } else {
+        alert(result.error || 'イベントの削除に失敗しました');
+      }
+    });
   };
 
   return (
@@ -152,7 +148,7 @@ export function EventActionMenu({ event }: EventActionMenuProps) {
                   type="text"
                   defaultValue={event.name}
                   required
-                  disabled={isLoading}
+                  disabled={isPending}
                   className="h-9 border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
                 />
               </div>
@@ -166,7 +162,7 @@ export function EventActionMenu({ event }: EventActionMenuProps) {
                   name="eventDate"
                   type="date"
                   defaultValue={event.eventDate || ''}
-                  disabled={isLoading}
+                  disabled={isPending}
                   className="h-9 border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
                 />
               </div>
@@ -179,7 +175,7 @@ export function EventActionMenu({ event }: EventActionMenuProps) {
                   id={`edit-memo-${event.id}`}
                   name="memo"
                   defaultValue={event.memo || ''}
-                  disabled={isLoading}
+                  disabled={isPending}
                   rows={3}
                   className="border-zinc-200 bg-white text-sm dark:border-zinc-800 dark:bg-zinc-950"
                 />
@@ -190,7 +186,7 @@ export function EventActionMenu({ event }: EventActionMenuProps) {
               <Button
                 type="button"
                 variant="ghost"
-                disabled={isLoading}
+                disabled={isPending}
                 onClick={() => setIsEditDialogOpen(false)}
                 className="text-zinc-500 dark:text-zinc-400"
               >
@@ -198,10 +194,10 @@ export function EventActionMenu({ event }: EventActionMenuProps) {
               </Button>
               <Button
                 type="submit"
-                disabled={isLoading}
+                disabled={isPending}
                 className="bg-zinc-900 text-white hover:bg-zinc-850 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
               >
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 更新する
               </Button>
             </DialogFooter>
@@ -222,17 +218,17 @@ export function EventActionMenu({ event }: EventActionMenuProps) {
           </AlertDialogHeader>
           <AlertDialogFooter className="flex justify-end gap-2 border-t border-zinc-100 pt-4 dark:border-zinc-800">
             <AlertDialogCancel
-              disabled={isLoading}
+              disabled={isPending}
               className="border-zinc-200 text-zinc-500 hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-400"
             >
               キャンセル
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
-              disabled={isLoading}
+              disabled={isPending}
               className="bg-red-600 text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
             >
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               削除する
             </AlertDialogAction>
           </AlertDialogFooter>
