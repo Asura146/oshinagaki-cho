@@ -218,32 +218,32 @@ export function CircleCard({
           )}
 
           <div className="space-y-0.5 min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
               {circle.space && (
-                <span className="inline-flex items-center rounded border border-zinc-200 bg-zinc-100 px-1.5 sm:px-2 py-0.5 text-[11px] sm:text-xs font-semibold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
-                  <MapPin className="mr-0.5 sm:mr-1 h-3 w-3" />
+                <span className="inline-flex items-center shrink-0 rounded border border-zinc-200 bg-zinc-100 px-1.5 sm:px-2 py-0.5 text-[11px] sm:text-xs font-semibold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                  <MapPin className="mr-0.5 sm:mr-1 h-3 w-3 shrink-0" />
                   {circle.space}
                 </span>
               )}
 
               {/* 優先度バッジ */}
               {circle.priority === 'high' && (
-                <span className="inline-flex items-center rounded border border-red-200 bg-red-50 px-1.5 py-0.5 text-[10px] sm:text-[11px] font-bold text-red-600 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-400">
+                <span className="inline-flex items-center shrink-0 rounded border border-red-200 bg-red-50 px-1.5 py-0.5 text-[10px] sm:text-[11px] font-bold text-red-600 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-400">
                   高
                 </span>
               )}
               {circle.priority === 'low' && (
-                <span className="inline-flex items-center rounded border border-zinc-200 bg-zinc-100 px-1.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
+                <span className="inline-flex items-center shrink-0 rounded border border-zinc-200 bg-zinc-100 px-1.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
                   低
                 </span>
               )}
               {(!circle.priority || circle.priority === 'medium') && (
-                <span className="inline-flex items-center rounded border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-amber-600 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-400">
+                <span className="inline-flex items-center shrink-0 rounded border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-amber-600 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-400">
                   中
                 </span>
               )}
 
-              <h3 className="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-50 truncate">
+              <h3 className="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-50 truncate min-w-0 flex-1">
                 {circle.name}
               </h3>
             </div>
