@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { createCircle } from '@/app/actions/circles';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -26,27 +26,24 @@ interface CreateCircleDialogProps {
 export function CreateCircleDialog({ eventId }: CreateCircleDialogProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
     setError(null);
-
     const formData = new FormData(e.currentTarget);
     formData.append('eventId', eventId);
 
-    const result = await createCircle(formData);
-
-    if (result.ok) {
-      setIsOpen(false);
-      router.refresh();
-      setIsLoading(false);
-    } else {
-      setError(result.error || 'サークルの追加に失敗しました');
-      setIsLoading(false);
-    }
+    startTransition(async () => {
+      const result = await createCircle(formData);
+      if (result.ok) {
+        setIsOpen(false);
+        router.refresh();
+      } else {
+        setError(result.error || 'サークルの追加に失敗しました');
+      }
+    });
   };
 
   return (
@@ -94,7 +91,7 @@ export function CreateCircleDialog({ eventId }: CreateCircleDialogProps) {
                 name="space"
                 type="text"
                 placeholder="例: 東1ホール A-01a"
-                disabled={isLoading}
+                disabled={isPending}
                 className="h-9 border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
               />
             </div>
@@ -109,7 +106,7 @@ export function CreateCircleDialog({ eventId }: CreateCircleDialogProps) {
                 type="text"
                 placeholder="例: おしながき本舗"
                 required
-                disabled={isLoading}
+                disabled={isPending}
                 className="h-9 border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
               />
             </div>
@@ -123,7 +120,7 @@ export function CreateCircleDialog({ eventId }: CreateCircleDialogProps) {
                 name="twitterId"
                 type="text"
                 placeholder="例: @circle_account"
-                disabled={isLoading}
+                disabled={isPending}
                 className="h-9 border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
               />
             </div>
@@ -136,7 +133,7 @@ export function CreateCircleDialog({ eventId }: CreateCircleDialogProps) {
                 id="priority"
                 name="priority"
                 defaultValue="medium"
-                disabled={isLoading}
+                disabled={isPending}
                 className="h-9 w-full rounded-md border border-zinc-200 bg-white px-3 text-xs text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50"
               >
                 <option value="high">🔴 高（最優先）</option>
@@ -154,7 +151,7 @@ export function CreateCircleDialog({ eventId }: CreateCircleDialogProps) {
                 name="avatarFile"
                 type="file"
                 accept="image/*"
-                disabled={isLoading}
+                disabled={isPending}
                 className="h-9 border-zinc-200 bg-white text-xs dark:border-zinc-800 dark:bg-zinc-950 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-zinc-100 file:text-zinc-700"
               />
             </div>
@@ -167,7 +164,7 @@ export function CreateCircleDialog({ eventId }: CreateCircleDialogProps) {
                 id="memo"
                 name="memo"
                 placeholder="狙い目の作品や巡回優先度などのメモ"
-                disabled={isLoading}
+                disabled={isPending}
                 rows={3}
                 className="border-zinc-200 bg-white text-sm dark:border-zinc-800 dark:bg-zinc-950"
               />
@@ -178,7 +175,7 @@ export function CreateCircleDialog({ eventId }: CreateCircleDialogProps) {
             <Button
               type="button"
               variant="ghost"
-              disabled={isLoading}
+              disabled={isPending}
               onClick={() => setIsOpen(false)}
               className="text-zinc-500 dark:text-zinc-400"
             >
@@ -186,10 +183,10 @@ export function CreateCircleDialog({ eventId }: CreateCircleDialogProps) {
             </Button>
             <Button
               type="submit"
-              disabled={isLoading}
+              disabled={isPending}
               className="bg-zinc-900 text-white hover:bg-zinc-850 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
             >
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               追加する
             </Button>
           </DialogFooter>

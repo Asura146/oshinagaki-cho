@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { createEvent } from '@/app/actions/events';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -22,25 +22,23 @@ import { cn } from '@/lib/utils';
 export function CreateEventDialog() {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
     setError(null);
-
     const formData = new FormData(e.currentTarget);
-    const result = await createEvent(formData);
 
-    if (result.ok) {
-      setIsOpen(false);
-      router.refresh();
-      setIsLoading(false);
-    } else {
-      setError(result.error || 'イベントの作成に失敗しました');
-      setIsLoading(false);
-    }
+    startTransition(async () => {
+      const result = await createEvent(formData);
+      if (result.ok) {
+        setIsOpen(false);
+        router.refresh();
+      } else {
+        setError(result.error || 'イベントの作成に失敗しました');
+      }
+    });
   };
 
   return (
@@ -91,7 +89,7 @@ export function CreateEventDialog() {
                 type="text"
                 placeholder="例: コミックマーケット105"
                 required
-                disabled={isLoading}
+                disabled={isPending}
                 className="border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 h-9"
               />
             </div>
@@ -104,7 +102,7 @@ export function CreateEventDialog() {
                 id="eventDate"
                 name="eventDate"
                 type="date"
-                disabled={isLoading}
+                disabled={isPending}
                 className="border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 h-9"
               />
             </div>
@@ -117,7 +115,7 @@ export function CreateEventDialog() {
                 id="memo"
                 name="memo"
                 placeholder="イベントの場所や開場時間、配置などのメモ"
-                disabled={isLoading}
+                disabled={isPending}
                 rows={3}
                 className="border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 text-sm"
               />
@@ -128,7 +126,7 @@ export function CreateEventDialog() {
             <Button
               type="button"
               variant="ghost"
-              disabled={isLoading}
+              disabled={isPending}
               onClick={() => setIsOpen(false)}
               className="text-zinc-500 dark:text-zinc-400"
             >
@@ -136,10 +134,10 @@ export function CreateEventDialog() {
             </Button>
             <Button
               type="submit"
-              disabled={isLoading}
+              disabled={isPending}
               className="bg-zinc-900 text-white hover:bg-zinc-850 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
             >
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               作成する
             </Button>
           </DialogFooter>

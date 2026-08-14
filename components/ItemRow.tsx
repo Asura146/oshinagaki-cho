@@ -36,9 +36,10 @@ interface ItemRowProps {
     checked: boolean;
   };
   eventId: string;
+  onToggle?: (nextChecked: boolean) => void;
 }
 
-export function ItemRow({ item, eventId }: ItemRowProps) {
+export function ItemRow({ item, eventId, onToggle }: ItemRowProps) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -60,22 +61,26 @@ export function ItemRow({ item, eventId }: ItemRowProps) {
     const previous = isChecked;
     const next = !previous;
 
-    // 1. 即座に (0ms) ローカルUIを反転更新
+    // 1. 即座に (0ms) ローカルUIを反転更新 ＆ 親へ通知
     setIsChecked(next);
+    if (onToggle) {
+      onToggle(next);
+    }
 
     // 2. バックグラウンドでサーバーへ送信 & 画面同期
     startTransition(async () => {
       const result = await toggleItemChecked(item.id, eventId, previous);
       if (!result.ok) {
         setIsChecked(previous);
+        if (onToggle) {
+          onToggle(previous);
+        }
         alert(result.error || '状態の更新に失敗しました');
-      } else {
-        router.refresh();
       }
     });
   };
 
-  const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleEditSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
@@ -84,29 +89,32 @@ export function ItemRow({ item, eventId }: ItemRowProps) {
     formData.append('id', item.id);
     formData.append('eventId', eventId);
 
-    const result = await updateItem(formData);
-
-    if (result.ok) {
-      setIsEditDialogOpen(false);
-      router.refresh();
-      setIsLoading(false);
-    } else {
-      setError(result.error || 'アイテムの更新に失敗しました');
-      setIsLoading(false);
-    }
+    startTransition(async () => {
+      const result = await updateItem(formData);
+      if (result.ok) {
+        setIsEditDialogOpen(false);
+        router.refresh();
+        setIsLoading(false);
+      } else {
+        setError(result.error || 'アイテムの更新に失敗しました');
+        setIsLoading(false);
+      }
+    });
   };
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = () => {
     setIsDeleting(true);
-    const result = await deleteItem(item.id, eventId);
-    if (result.ok) {
-      setIsDeleteDialogOpen(false);
-      router.refresh();
-      setIsDeleting(false);
-    } else {
-      alert(result.error || 'アイテムの削除に失敗しました');
-      setIsDeleting(false);
-    }
+    startTransition(async () => {
+      const result = await deleteItem(item.id, eventId);
+      if (result.ok) {
+        setIsDeleteDialogOpen(false);
+        router.refresh();
+        setIsDeleting(false);
+      } else {
+        alert(result.error || 'アイテムの削除に失敗しました');
+        setIsDeleting(false);
+      }
+    });
   };
 
   const totalPrice = item.price * item.qty;

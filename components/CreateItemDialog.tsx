@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { createItem } from '@/app/actions/items';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -26,28 +26,25 @@ interface CreateItemDialogProps {
 export function CreateItemDialog({ circleId, eventId }: CreateItemDialogProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
     setError(null);
-
     const formData = new FormData(e.currentTarget);
     formData.append('circleId', circleId);
     formData.append('eventId', eventId);
 
-    const result = await createItem(formData);
-
-    if (result.ok) {
-      setIsOpen(false);
-      router.refresh();
-      setIsLoading(false);
-    } else {
-      setError(result.error || 'アイテムの追加に失敗しました');
-      setIsLoading(false);
-    }
+    startTransition(async () => {
+      const result = await createItem(formData);
+      if (result.ok) {
+        setIsOpen(false);
+        router.refresh();
+      } else {
+        setError(result.error || 'アイテムの追加に失敗しました');
+      }
+    });
   };
 
   return (
@@ -96,7 +93,7 @@ export function CreateItemDialog({ circleId, eventId }: CreateItemDialogProps) {
                 type="text"
                 placeholder="例: 新刊フルカラーイラスト集"
                 required
-                disabled={isLoading}
+                disabled={isPending}
                 className="h-9 border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
               />
             </div>
@@ -113,7 +110,7 @@ export function CreateItemDialog({ circleId, eventId }: CreateItemDialogProps) {
                   min="0"
                   step="100"
                   defaultValue="1000"
-                  disabled={isLoading}
+                  disabled={isPending}
                   className="h-9 border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
                 />
               </div>
@@ -128,7 +125,7 @@ export function CreateItemDialog({ circleId, eventId }: CreateItemDialogProps) {
                   type="number"
                   min="1"
                   defaultValue="1"
-                  disabled={isLoading}
+                  disabled={isPending}
                   className="h-9 border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
                 />
               </div>
@@ -139,7 +136,7 @@ export function CreateItemDialog({ circleId, eventId }: CreateItemDialogProps) {
             <Button
               type="button"
               variant="ghost"
-              disabled={isLoading}
+              disabled={isPending}
               onClick={() => setIsOpen(false)}
               className="text-zinc-500 dark:text-zinc-400"
             >
@@ -147,10 +144,10 @@ export function CreateItemDialog({ circleId, eventId }: CreateItemDialogProps) {
             </Button>
             <Button
               type="submit"
-              disabled={isLoading}
+              disabled={isPending}
               className="bg-zinc-900 text-white hover:bg-zinc-850 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
             >
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               追加する
             </Button>
           </DialogFooter>

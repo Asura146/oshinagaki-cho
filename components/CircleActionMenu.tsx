@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { updateCircle, deleteCircle } from '@/app/actions/circles';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -51,41 +51,38 @@ export function CircleActionMenu({ circle, eventId }: CircleActionMenuProps) {
   const router = useRouter();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleEditSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
     setError(null);
 
     const formData = new FormData(e.currentTarget);
     formData.append('id', circle.id);
     formData.append('eventId', eventId);
 
-    const result = await updateCircle(formData);
-
-    if (result.ok) {
-      setIsEditDialogOpen(false);
-      router.refresh();
-      setIsLoading(false);
-    } else {
-      setError(result.error || 'サークル情報の更新に失敗しました');
-      setIsLoading(false);
-    }
+    startTransition(async () => {
+      const result = await updateCircle(formData);
+      if (result.ok) {
+        setIsEditDialogOpen(false);
+        router.refresh();
+      } else {
+        setError(result.error || 'サークル情報の更新に失敗しました');
+      }
+    });
   };
 
-  const handleDeleteConfirm = async () => {
-    setIsLoading(true);
-    const result = await deleteCircle(circle.id, eventId);
-    if (result.ok) {
-      setIsDeleteDialogOpen(false);
-      router.refresh();
-      setIsLoading(false);
-    } else {
-      alert(result.error || 'サークルの削除に失敗しました');
-      setIsLoading(false);
-    }
+  const handleDeleteConfirm = () => {
+    startTransition(async () => {
+      const result = await deleteCircle(circle.id, eventId);
+      if (result.ok) {
+        setIsDeleteDialogOpen(false);
+        router.refresh();
+      } else {
+        alert(result.error || 'サークルの削除に失敗しました');
+      }
+    });
   };
 
   return (
@@ -153,7 +150,7 @@ export function CircleActionMenu({ circle, eventId }: CircleActionMenuProps) {
                   type="text"
                   defaultValue={circle.space || ''}
                   placeholder="例: 東1ホール A-01a"
-                  disabled={isLoading}
+                  disabled={isPending}
                   className="h-9 border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
                 />
               </div>
@@ -168,7 +165,7 @@ export function CircleActionMenu({ circle, eventId }: CircleActionMenuProps) {
                   type="text"
                   defaultValue={circle.name}
                   required
-                  disabled={isLoading}
+                  disabled={isPending}
                   className="h-9 border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
                 />
               </div>
@@ -183,7 +180,7 @@ export function CircleActionMenu({ circle, eventId }: CircleActionMenuProps) {
                   type="text"
                   defaultValue={circle.twitterId || ''}
                   placeholder="例: @circle_account"
-                  disabled={isLoading}
+                  disabled={isPending}
                   className="h-9 border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
                 />
               </div>
@@ -196,7 +193,7 @@ export function CircleActionMenu({ circle, eventId }: CircleActionMenuProps) {
                   id={`circle-priority-${circle.id}`}
                   name="priority"
                   defaultValue={circle.priority || 'medium'}
-                  disabled={isLoading}
+                  disabled={isPending}
                   className="h-9 w-full rounded-md border border-zinc-200 bg-white px-3 text-xs text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50"
                 >
                   <option value="high">🔴 高（最優先）</option>
@@ -214,7 +211,7 @@ export function CircleActionMenu({ circle, eventId }: CircleActionMenuProps) {
                   name="avatarFile"
                   type="file"
                   accept="image/*"
-                  disabled={isLoading}
+                  disabled={isPending}
                   className="h-9 border-zinc-200 bg-white text-xs dark:border-zinc-800 dark:bg-zinc-950 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-zinc-100 file:text-zinc-700"
                 />
               </div>
@@ -228,7 +225,7 @@ export function CircleActionMenu({ circle, eventId }: CircleActionMenuProps) {
                   name="memo"
                   defaultValue={circle.memo || ''}
                   placeholder="メモを入力"
-                  disabled={isLoading}
+                  disabled={isPending}
                   rows={3}
                   className="border-zinc-200 bg-white text-sm dark:border-zinc-800 dark:bg-zinc-950"
                 />
@@ -239,7 +236,7 @@ export function CircleActionMenu({ circle, eventId }: CircleActionMenuProps) {
               <Button
                 type="button"
                 variant="ghost"
-                disabled={isLoading}
+                disabled={isPending}
                 onClick={() => setIsEditDialogOpen(false)}
                 className="text-zinc-500 dark:text-zinc-400"
               >
@@ -247,10 +244,10 @@ export function CircleActionMenu({ circle, eventId }: CircleActionMenuProps) {
               </Button>
               <Button
                 type="submit"
-                disabled={isLoading}
+                disabled={isPending}
                 className="bg-zinc-900 text-white hover:bg-zinc-850 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
               >
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 更新する
               </Button>
             </DialogFooter>
@@ -271,17 +268,17 @@ export function CircleActionMenu({ circle, eventId }: CircleActionMenuProps) {
           </AlertDialogHeader>
           <AlertDialogFooter className="flex justify-end gap-2 border-t border-zinc-100 pt-4 dark:border-zinc-800">
             <AlertDialogCancel
-              disabled={isLoading}
+              disabled={isPending}
               className="border-zinc-200 text-zinc-500 hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-400"
             >
               キャンセル
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
-              disabled={isLoading}
+              disabled={isPending}
               className="bg-red-600 text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
             >
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               削除する
             </AlertDialogAction>
           </AlertDialogFooter>

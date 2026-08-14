@@ -61,7 +61,6 @@ export async function createItem(formData: FormData) {
     });
 
     revalidatePath(`/events/${validated.data.eventId}`);
-    revalidatePath('/', 'layout');
 
     return { ok: true };
   } catch (error) {
@@ -109,7 +108,6 @@ export async function updateItem(formData: FormData) {
       .where(and(eq(items.id, validated.data.id), eq(items.userId, user.id)));
 
     revalidatePath(`/events/${validated.data.eventId}`);
-    revalidatePath('/', 'layout');
 
     return { ok: true };
   } catch (error) {
@@ -139,7 +137,6 @@ export async function toggleItemChecked(itemId: string, eventId: string, current
       .where(and(eq(items.id, itemId), eq(items.userId, user.id)));
 
     revalidatePath(`/events/${eventId}`);
-    revalidatePath('/', 'layout');
 
     return { ok: true };
   } catch (error) {
@@ -169,7 +166,6 @@ export async function toggleAllItemsInCircle(circleId: string, eventId: string, 
       .where(and(eq(items.circleId, circleId), eq(items.userId, user.id)));
 
     revalidatePath(`/events/${eventId}`);
-    revalidatePath('/', 'layout');
 
     return { ok: true };
   } catch (error) {
@@ -199,7 +195,6 @@ export async function deleteItem(itemId: string, eventId: string) {
       .where(and(eq(items.id, itemId), eq(items.userId, user.id)));
 
     revalidatePath(`/events/${eventId}`);
-    revalidatePath('/', 'layout');
 
     return { ok: true };
   } catch (error) {
