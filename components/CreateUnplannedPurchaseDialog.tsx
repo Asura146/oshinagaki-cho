@@ -19,7 +19,7 @@ import { Loader2, ShoppingBag, Plus, Minus } from 'lucide-react';
 
 interface CreateUnplannedPurchaseDialogProps {
   eventId: string;
-  trigger?: React.ReactNode;
+  triggerVariant?: 'default' | 'icon';
   onCreated?: (item: {
     id: string;
     eventId: string;
@@ -39,7 +39,7 @@ const QUICK_PRICES = [500, 1000, 1500, 2000, 3000, 5000];
 
 export function CreateUnplannedPurchaseDialog({
   eventId,
-  trigger,
+  triggerVariant = 'default',
   onCreated,
 }: CreateUnplannedPurchaseDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -123,9 +123,15 @@ export function CreateUnplannedPurchaseDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      {trigger ? (
-        <DialogTrigger className="inline-flex cursor-pointer">
-          {trigger}
+      {triggerVariant === 'icon' ? (
+        <DialogTrigger
+          className={cn(
+            buttonVariants({ variant: 'ghost', size: 'icon-xs' }),
+            'h-7 w-7 text-amber-700 hover:bg-amber-200/60 dark:text-amber-300 dark:hover:bg-amber-900/40 cursor-pointer'
+          )}
+          title="突発購入を追加"
+        >
+          <Plus className="h-4 w-4" />
         </DialogTrigger>
       ) : (
         <DialogTrigger

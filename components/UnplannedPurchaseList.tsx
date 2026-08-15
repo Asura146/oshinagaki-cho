@@ -21,7 +21,6 @@ import {
   Trash2,
   MapPin,
   Loader2,
-  Plus,
 } from 'lucide-react';
 import { CreateUnplannedPurchaseDialog } from './CreateUnplannedPurchaseDialog';
 
@@ -145,17 +144,7 @@ export function UnplannedPurchaseList({
 
           <CreateUnplannedPurchaseDialog
             eventId={eventId}
-            trigger={
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-xs"
-                className="h-7 w-7 text-amber-700 hover:bg-amber-200/60 dark:text-amber-300 dark:hover:bg-amber-900/40"
-                title="突発購入を追加"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            }
+            triggerVariant="icon"
             onCreated={(item) => {
               if (onPurchasesChange) {
                 onPurchasesChange([item, ...purchases]);
