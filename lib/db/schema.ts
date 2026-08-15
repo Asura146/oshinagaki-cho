@@ -21,6 +21,7 @@ export const circles = pgTable('circles', {
   avatarPath: text('avatar_path'),
   memo: text('memo'),
   priority: text('priority').default('medium').notNull(),
+  isExcluded: boolean('is_excluded').default(false).notNull(),
   orderIndex: integer('order_index').default(0).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
