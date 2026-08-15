@@ -45,6 +45,9 @@ async function EventDataFetcher({ eventId, userId }: { eventId: string; userId: 
       unplannedPurchases: {
         orderBy: [desc(unplannedPurchases.createdAt)],
       },
+      eventMaps: {
+        orderBy: (maps, { asc }) => [asc(maps.orderIndex)],
+      },
     },
   });
 
@@ -52,7 +55,7 @@ async function EventDataFetcher({ eventId, userId }: { eventId: string; userId: 
     notFound();
   }
 
-  const { circles: fetchedCircles, unplannedPurchases: fetchedUnplannedPurchases = [], ...event } = eventData;
+  const { circles: fetchedCircles, unplannedPurchases: fetchedUnplannedPurchases = [], eventMaps = [], ...event } = eventData;
   const circleList = fetchedCircles.map((c) => ({
     id: c.id,
     eventId: c.eventId,
@@ -92,6 +95,7 @@ async function EventDataFetcher({ eventId, userId }: { eventId: string; userId: 
       circleItemsMap={circleItemsMap}
       circleOshinagakiImagesMap={circleOshinagakiImagesMap}
       unplannedPurchases={fetchedUnplannedPurchases}
+      eventMaps={eventMaps}
     />
   );
 }
