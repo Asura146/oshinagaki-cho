@@ -54,7 +54,6 @@ interface CircleCardProps {
   isFirst?: boolean;
   isLast?: boolean;
   isMoving?: boolean;
-  onLongPress?: () => void;
   onItemsChange?: (items: Item[]) => void;
 }
 
@@ -89,7 +88,6 @@ export function CircleCard({
   isFirst,
   isLast,
   isMoving,
-  onLongPress,
   onItemsChange,
 }: CircleCardProps) {
   const [isOpen, setIsOpen] = useState(false);
