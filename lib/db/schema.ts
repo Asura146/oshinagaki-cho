@@ -54,8 +54,28 @@ export const oshinagakiImages = pgTable('oshinagaki_images', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 }, (t) => ({ circleIdx: index('oshinagaki_circle_id_idx').on(t.circleId) }));
 
+export const unplannedPurchases = pgTable('unplanned_purchases', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  eventId: uuid('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id').notNull(),
+  name: text('name').notNull(),
+  price: integer('price').default(0).notNull(),
+  qty: integer('qty').default(1).notNull(),
+  circleName: text('circle_name'),
+  memo: text('memo'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (t) => ({
+  eventIdx: index('unplanned_purchases_event_id_idx').on(t.eventId),
+  userIdx: index('unplanned_purchases_user_id_idx').on(t.userId),
+  qtyCheck: check('unplanned_purchases_qty_check', sql`${t.qty} >= 1`),
+}));
+
 // リレーション定義
-export const eventsRelations = relations(events, ({ many }) => ({ circles: many(circles) }));
+export const eventsRelations = relations(events, ({ many }) => ({
+  circles: many(circles),
+  unplannedPurchases: many(unplannedPurchases),
+}));
 export const circlesRelations = relations(circles, ({ one, many }) => ({
   event: one(events, { fields: [circles.eventId], references: [events.id] }),
   items: many(items),
@@ -63,3 +83,6 @@ export const circlesRelations = relations(circles, ({ one, many }) => ({
 }));
 export const itemsRelations = relations(items, ({ one }) => ({ circle: one(circles, { fields: [items.circleId], references: [circles.id] }) }));
 export const oshinagakiImagesRelations = relations(oshinagakiImages, ({ one }) => ({ circle: one(circles, { fields: [oshinagakiImages.circleId], references: [circles.id] }) }));
+export const unplannedPurchasesRelations = relations(unplannedPurchases, ({ one }) => ({
+  event: one(events, { fields: [unplannedPurchases.eventId], references: [events.id] }),
+}));

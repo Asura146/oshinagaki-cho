@@ -7,6 +7,8 @@ import { ReorderCirclesDialog } from '@/components/ReorderCirclesDialog';
 import { Button } from '@/components/ui/button';
 import { ArrowUpDown, Loader2, Calendar, Store } from 'lucide-react';
 import { CreateCircleDialog } from '@/components/CreateCircleDialog';
+import { CreateUnplannedPurchaseDialog } from '@/components/CreateUnplannedPurchaseDialog';
+import { UnplannedPurchaseList, UnplannedPurchaseItem } from '@/components/UnplannedPurchaseList';
 
 interface Item {
   id: string;
@@ -40,6 +42,7 @@ interface CircleListContainerProps {
   }>;
   circleItemsMap: Record<string, Item[]>;
   circleOshinagakiImagesMap: Record<string, OshinagakiImage[]>;
+  unplannedPurchases?: UnplannedPurchaseItem[];
 }
 
 export function CircleListContainer({
@@ -48,6 +51,7 @@ export function CircleListContainer({
   circleList,
   circleItemsMap,
   circleOshinagakiImagesMap,
+  unplannedPurchases = [],
 }: CircleListContainerProps) {
   const [isPending, startTransition] = useTransition();
   const [list, setList] = useState(circleList);
@@ -56,16 +60,18 @@ export function CircleListContainer({
   const [selectedPriorities, setSelectedPriorities] = useState<string[]>(['high', 'medium', 'low']);
   const [hideCompleted, setHideCompleted] = useState(false);
 
-  // リアルタイム集計用のアイテム状態
+  // リアルタイム集計用のアイテム状態 & 予定外購入状態
   const [itemsRecord, setItemsRecord] = useState<Record<string, Item[]>>(circleItemsMap);
+  const [unplannedPurchasesRecord, setUnplannedPurchasesRecord] = useState<UnplannedPurchaseItem[]>(unplannedPurchases);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setList(circleList);
     setItemsRecord(circleItemsMap);
-  }, [circleList, circleItemsMap]);
+    setUnplannedPurchasesRecord(unplannedPurchases);
+  }, [circleList, circleItemsMap, unplannedPurchases]);
 
-  // 集計計算 (全サークルの全アイテムを走査)
+  // 集計計算 (全サークルの全アイテム + 予定外購入)
   let totalBudget = 0;
   let spentBudget = 0;
   Object.values(itemsRecord || {}).forEach((items) => {
@@ -76,6 +82,13 @@ export function CircleListContainer({
         spentBudget += itemTotal;
       }
     });
+  });
+
+  // 予定外購入は登録時点で「購入済み」
+  (unplannedPurchasesRecord || []).forEach((p) => {
+    const pTotal = p.price * p.qty;
+    totalBudget += pTotal;
+    spentBudget += pTotal;
   });
 
   const togglePriorityFilter = (priority: string) => {
@@ -129,7 +142,7 @@ export function CircleListContainer({
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* イベントヘッダーカード (基本情報 + 集計サマリー) */}
       <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         <div className="flex flex-col gap-2">
@@ -181,13 +194,26 @@ export function CircleListContainer({
         </div>
       </div>
 
+      {/* 予定外・突発購入リスト */}
+      <UnplannedPurchaseList
+        eventId={eventId}
+        purchases={unplannedPurchasesRecord}
+        onPurchasesChange={(updated) => setUnplannedPurchasesRecord(updated)}
+      />
+
       {/* サークル・お品書きセクション */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
           <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50">
             サークル・お品書きリスト
           </h2>
-          <CreateCircleDialog eventId={eventId} />
+          <div className="flex items-center gap-2">
+            <CreateUnplannedPurchaseDialog
+              eventId={eventId}
+              onCreated={(item) => setUnplannedPurchasesRecord((prev) => [item, ...prev])}
+            />
+            <CreateCircleDialog eventId={eventId} />
+          </div>
         </div>
 
         {list.length === 0 ? (

@@ -4,9 +4,10 @@ import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/db';
 import { events, circles } from '@/lib/db/schema';
-import { eq, and, asc } from 'drizzle-orm';
+import { eq, and, asc, desc } from 'drizzle-orm';
 import { ArrowLeft } from 'lucide-react';
 import { CircleListContainer } from '@/components/CircleListContainer';
+import { unplannedPurchases } from '@/lib/db/schema';
 
 interface EventDetailPageProps {
   params: Promise<{
@@ -26,6 +27,9 @@ async function EventDataFetcher({ eventId, userId }: { eventId: string; userId: 
           oshinagakiImages: true,
         },
       },
+      unplannedPurchases: {
+        orderBy: [desc(unplannedPurchases.createdAt)],
+      },
     },
   });
 
@@ -33,8 +37,21 @@ async function EventDataFetcher({ eventId, userId }: { eventId: string; userId: 
     notFound();
   }
 
-  const { circles: fetchedCircles, ...event } = eventData;
-  const circleList = fetchedCircles.map(({ items: _items, oshinagakiImages: _oshinagakiImages, ...circle }) => circle);
+  const { circles: fetchedCircles, unplannedPurchases: fetchedUnplannedPurchases = [], ...event } = eventData;
+  const circleList = fetchedCircles.map((c) => ({
+    id: c.id,
+    eventId: c.eventId,
+    userId: c.userId,
+    name: c.name,
+    twitterId: c.twitterId,
+    space: c.space,
+    avatarPath: c.avatarPath,
+    memo: c.memo,
+    priority: c.priority,
+    orderIndex: c.orderIndex,
+    createdAt: c.createdAt,
+    updatedAt: c.updatedAt,
+  }));
 
   const circleItemsMap: Record<string, typeof fetchedCircles[number]['items']> = {};
   const circleOshinagakiImagesMap: Record<string, typeof fetchedCircles[number]['oshinagakiImages']> = {};
@@ -51,6 +68,7 @@ async function EventDataFetcher({ eventId, userId }: { eventId: string; userId: 
       circleList={circleList}
       circleItemsMap={circleItemsMap}
       circleOshinagakiImagesMap={circleOshinagakiImagesMap}
+      unplannedPurchases={fetchedUnplannedPurchases}
     />
   );
 }
