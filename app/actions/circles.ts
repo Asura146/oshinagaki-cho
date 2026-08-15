@@ -259,3 +259,33 @@ export async function reorderCircles(eventId: string, orderedCircleIds: string[]
     return { ok: false, error: '順序の変更に失敗しました。' };
   }
 }
+
+export async function toggleCircleExcluded(circleId: string, eventId: string, isExcluded: boolean) {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return { ok: false, error: '認証が必要です。ログインし直してください。' };
+    }
+
+    if (!circleId) {
+      return { ok: false, error: 'サークルIDが指定されていません。' };
+    }
+
+    await db
+      .update(circles)
+      .set({ isExcluded, updatedAt: new Date() })
+      .where(and(eq(circles.id, circleId), eq(circles.userId, user.id)));
+
+    revalidatePath(`/events/${eventId}`);
+
+    return { ok: true };
+  } catch (error) {
+    console.error('Failed to toggle circle excluded status:', error);
+    return { ok: false, error: '対象外状態の更新に失敗しました。' };
+  }
+}
