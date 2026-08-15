@@ -72,10 +72,22 @@ export const unplannedPurchases = pgTable('unplanned_purchases', {
   qtyCheck: check('unplanned_purchases_qty_check', sql`${t.qty} >= 1`),
 }));
 
+export const eventMaps = pgTable('event_maps', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  eventId: uuid('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id').notNull(),
+  name: text('name').notNull(),
+  storagePath: text('storage_path').notNull(),
+  mimeType: text('mime_type').notNull(),
+  orderIndex: integer('order_index').default(0).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (t) => ({ eventIdx: index('event_maps_event_id_idx').on(t.eventId) }));
+
 // リレーション定義
 export const eventsRelations = relations(events, ({ many }) => ({
   circles: many(circles),
   unplannedPurchases: many(unplannedPurchases),
+  eventMaps: many(eventMaps),
 }));
 export const circlesRelations = relations(circles, ({ one, many }) => ({
   event: one(events, { fields: [circles.eventId], references: [events.id] }),
@@ -86,4 +98,7 @@ export const itemsRelations = relations(items, ({ one }) => ({ circle: one(circl
 export const oshinagakiImagesRelations = relations(oshinagakiImages, ({ one }) => ({ circle: one(circles, { fields: [oshinagakiImages.circleId], references: [circles.id] }) }));
 export const unplannedPurchasesRelations = relations(unplannedPurchases, ({ one }) => ({
   event: one(events, { fields: [unplannedPurchases.eventId], references: [events.id] }),
+}));
+export const eventMapsRelations = relations(eventMaps, ({ one }) => ({
+  event: one(events, { fields: [eventMaps.eventId], references: [events.id] }),
 }));
