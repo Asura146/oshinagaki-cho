@@ -21,9 +21,10 @@ import { cn } from '@/lib/utils';
 
 interface CreateCircleDialogProps {
   eventId: string;
+  showFloatingButton?: boolean;
 }
 
-export function CreateCircleDialog({ eventId }: CreateCircleDialogProps) {
+export function CreateCircleDialog({ eventId, showFloatingButton = true }: CreateCircleDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -64,151 +65,166 @@ export function CreateCircleDialog({ eventId }: CreateCircleDialogProps) {
   };
 
   return (
-    <Dialog
-      open={isOpen}
-      onOpenChange={(open) => {
-        setIsOpen(open);
-        if (!open) setError(null);
-      }}
-    >
-      <DialogTrigger
-        className={cn(
-          buttonVariants({ size: 'sm' }),
-          'bg-zinc-900 text-white hover:bg-zinc-850 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200 cursor-pointer'
-        )}
+    <>
+      <Dialog
+        open={isOpen}
+        onOpenChange={(open) => {
+          setIsOpen(open);
+          if (!open) setError(null);
+        }}
       >
-        <Plus className="mr-1.5 h-3.5 w-3.5" />
-        サークルを追加
-      </DialogTrigger>
+        <DialogTrigger
+          className={cn(
+            buttonVariants({ size: 'sm' }),
+            'bg-zinc-900 text-white hover:bg-zinc-850 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200 cursor-pointer shadow-sm'
+          )}
+        >
+          <Plus className="mr-1.5 h-3.5 w-3.5" />
+          サークルを追加
+        </DialogTrigger>
 
-      <DialogContent className="max-w-md border-zinc-200 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-900">
-        <DialogHeader>
-          <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
-            サークルの追加
-          </DialogTitle>
-          <DialogDescription className="text-sm text-zinc-500 dark:text-zinc-400">
-            チェックしたいサークルの情報や配置スペースを入力してください。
-          </DialogDescription>
-        </DialogHeader>
+        <DialogContent className="max-w-md border-zinc-200 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-900">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
+              サークルの追加
+            </DialogTitle>
+            <DialogDescription className="text-sm text-zinc-500 dark:text-zinc-400">
+              チェックしたいサークルの情報や配置スペースを入力してください。
+            </DialogDescription>
+          </DialogHeader>
 
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-4 py-4">
-            {error && (
-              <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-600 dark:border-red-900/30 dark:bg-red-950/20 dark:text-red-400">
-                {error}
+          <form onSubmit={handleSubmit}>
+            <div className="space-y-4 py-4">
+              {error && (
+                <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-600 dark:border-red-900/30 dark:bg-red-950/20 dark:text-red-400">
+                  {error}
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <Label htmlFor="space" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                  配置スペース
+                </Label>
+                <Input
+                  id="space"
+                  name="space"
+                  type="text"
+                  placeholder="例: 東1ホール A-01a"
+                  disabled={isPending}
+                  className="h-9 border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
+                />
               </div>
-            )}
 
-            <div className="space-y-1.5">
-              <Label htmlFor="space" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                配置スペース
-              </Label>
-              <Input
-                id="space"
-                name="space"
-                type="text"
-                placeholder="例: 東1ホール A-01a"
-                disabled={isPending}
-                className="h-9 border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
-              />
+              <div className="space-y-1.5">
+                <Label htmlFor="name" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                  サークル名 <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="name"
+                  name="name"
+                  type="text"
+                  placeholder="例: おしながき本舗"
+                  required
+                  disabled={isPending}
+                  className="h-9 border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="twitterId" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                  X / Twitter ID または URL
+                </Label>
+                <Input
+                  id="twitterId"
+                  name="twitterId"
+                  type="text"
+                  placeholder="例: @circle_account や https://x.com/circle_account"
+                  disabled={isPending}
+                  className="h-9 border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="priority" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                  巡回優先度
+                </Label>
+                <select
+                  id="priority"
+                  name="priority"
+                  defaultValue="medium"
+                  disabled={isPending}
+                  className="h-9 w-full rounded-md border border-zinc-200 bg-white px-3 text-xs text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50"
+                >
+                  <option value="high">🔴 高（最優先）</option>
+                  <option value="medium">🟡 中（通常）</option>
+                  <option value="low">⚪ 低（余裕があれば）</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="avatarFile" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                  サークルアイコン画像
+                </Label>
+                <Input
+                  id="avatarFile"
+                  name="avatarFile"
+                  type="file"
+                  accept="image/*"
+                  disabled={isPending}
+                  className="h-9 border-zinc-200 bg-white text-xs dark:border-zinc-800 dark:bg-zinc-950 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-zinc-100 file:text-zinc-700"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="memo" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                  メモ
+                </Label>
+                <Textarea
+                  id="memo"
+                  name="memo"
+                  placeholder="狙い目の作品や巡回優先度などのメモ"
+                  disabled={isPending}
+                  rows={3}
+                  className="border-zinc-200 bg-white text-sm dark:border-zinc-800 dark:bg-zinc-950"
+                />
+              </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="name" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                サークル名 <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="name"
-                name="name"
-                type="text"
-                placeholder="例: おしながき本舗"
-                required
+            <DialogFooter className="flex justify-end gap-2 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+              <Button
+                type="button"
+                variant="ghost"
                 disabled={isPending}
-                className="h-9 border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="twitterId" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                X / Twitter ID または URL
-              </Label>
-              <Input
-                id="twitterId"
-                name="twitterId"
-                type="text"
-                placeholder="例: @circle_account や https://x.com/circle_account"
-                disabled={isPending}
-                className="h-9 border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="priority" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                巡回優先度
-              </Label>
-              <select
-                id="priority"
-                name="priority"
-                defaultValue="medium"
-                disabled={isPending}
-                className="h-9 w-full rounded-md border border-zinc-200 bg-white px-3 text-xs text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50"
+                onClick={() => setIsOpen(false)}
+                className="text-zinc-500 dark:text-zinc-400"
               >
-                <option value="high">🔴 高（最優先）</option>
-                <option value="medium">🟡 中（通常）</option>
-                <option value="low">⚪ 低（余裕があれば）</option>
-              </select>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="avatarFile" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                サークルアイコン画像
-              </Label>
-              <Input
-                id="avatarFile"
-                name="avatarFile"
-                type="file"
-                accept="image/*"
+                キャンセル
+              </Button>
+              <Button
+                type="submit"
                 disabled={isPending}
-                className="h-9 border-zinc-200 bg-white text-xs dark:border-zinc-800 dark:bg-zinc-950 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-zinc-100 file:text-zinc-700"
-              />
-            </div>
+                className="bg-zinc-900 text-white hover:bg-zinc-850 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
+              >
+                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                追加する
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="memo" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                メモ
-              </Label>
-              <Textarea
-                id="memo"
-                name="memo"
-                placeholder="狙い目の作品や巡回優先度などのメモ"
-                disabled={isPending}
-                rows={3}
-                className="border-zinc-200 bg-white text-sm dark:border-zinc-800 dark:bg-zinc-950"
-              />
-            </div>
-          </div>
-
-          <DialogFooter className="flex justify-end gap-2 border-t border-zinc-100 pt-4 dark:border-zinc-800">
-            <Button
-              type="button"
-              variant="ghost"
-              disabled={isPending}
-              onClick={() => setIsOpen(false)}
-              className="text-zinc-500 dark:text-zinc-400"
-            >
-              キャンセル
-            </Button>
-            <Button
-              type="submit"
-              disabled={isPending}
-              className="bg-zinc-900 text-white hover:bg-zinc-850 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
-            >
-              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              追加する
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+      {/* 画面右下に固定配置されるフローティングプラスボタン (FAB) */}
+      {showFloatingButton && (
+        <button
+          type="button"
+          onClick={() => setIsOpen(true)}
+          aria-label="サークルを追加"
+          title="サークルを追加"
+          className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-40 flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full bg-zinc-900 text-white shadow-xl hover:shadow-2xl hover:bg-zinc-800 active:scale-95 hover:scale-105 transition-all duration-200 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200 border border-zinc-700/30 dark:border-zinc-300/40 cursor-pointer focus:outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-500"
+        >
+          <Plus className="h-6 w-6 sm:h-7 sm:w-7 stroke-[2.5]" />
+        </button>
+      )}
+    </>
   );
 }

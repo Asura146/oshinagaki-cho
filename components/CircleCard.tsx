@@ -42,6 +42,7 @@ interface CircleCardProps {
     memo: string | null;
     avatarPath: string | null;
     priority?: string | null;
+    isExcluded?: boolean;
   };
   eventId: string;
   items: Item[];
@@ -54,7 +55,6 @@ interface CircleCardProps {
   isFirst?: boolean;
   isLast?: boolean;
   isMoving?: boolean;
-  onLongPress?: () => void;
   onItemsChange?: (items: Item[]) => void;
 }
 
@@ -89,7 +89,6 @@ export function CircleCard({
   isFirst,
   isLast,
   isMoving,
-  onLongPress,
   onItemsChange,
 }: CircleCardProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -138,6 +137,8 @@ export function CircleCard({
   const totalCount = localItems.length;
   const checkedCount = localItems.filter((i) => i.checked).length;
   const isAllChecked = totalCount > 0 && checkedCount === totalCount;
+  const totalAmount = localItems.reduce((sum, i) => sum + i.price * i.qty, 0);
+  const checkedAmount = localItems.filter((i) => i.checked).reduce((sum, i) => sum + i.price * i.qty, 0);
 
   // サークル一括チェックの切り替え
   const handleCircleCheckToggle = () => {
@@ -163,7 +164,8 @@ export function CircleCard({
     <div
       className={cn(
         'overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900 transition-all duration-200',
-        isAllChecked && 'bg-zinc-200 dark:bg-zinc-950/40'
+        isAllChecked && 'bg-zinc-200 dark:bg-zinc-950/40',
+        circle.isExcluded && 'opacity-60 grayscale'
       )}
     >
       {/* サークルヘッダー (全体クリックで展開・折りたたみ) */}
@@ -232,6 +234,12 @@ export function CircleCard({
                 </span>
               )}
 
+              {circle.isExcluded && (
+                <span className="inline-flex items-center shrink-0 rounded border border-zinc-300 bg-zinc-200 px-1.5 py-0.5 text-[10px] font-bold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
+                  対象外
+                </span>
+              )}
+
               {/* 優先度バッジ */}
               {circle.priority === 'high' && (
                 <span className="inline-flex items-center shrink-0 rounded border border-red-200 bg-red-50 px-1.5 py-0.5 text-[10px] sm:text-[11px] font-bold text-red-600 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-400">
@@ -284,16 +292,34 @@ export function CircleCard({
           onMouseDown={(e) => e.stopPropagation()}
         >
           {totalCount > 0 && (
-            <span
-              className={cn(
-                'text-[10px] sm:text-[11px] font-medium px-1.5 sm:px-2 py-0.5 rounded-full border transition-colors mr-0.5',
-                isAllChecked
-                  ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/40'
-                  : 'bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700'
-              )}
-            >
-              {checkedCount}/{totalCount}完了
-            </span>
+            <div className="flex items-center gap-1 mr-0.5">
+              <span
+                title={
+                  checkedAmount > 0
+                    ? `購入済み: ¥${checkedAmount.toLocaleString()} / 合計: ¥${totalAmount.toLocaleString()}`
+                    : `合計金額: ¥${totalAmount.toLocaleString()}`
+                }
+                className={cn(
+                  'text-[10px] sm:text-[11px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full border transition-colors whitespace-nowrap',
+                  isAllChecked
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/50'
+                    : 'bg-zinc-50 text-zinc-900 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:border-zinc-700'
+                )}
+              >
+                ¥{totalAmount.toLocaleString()}
+              </span>
+
+              <span
+                className={cn(
+                  'text-[10px] sm:text-[11px] font-medium px-1.5 sm:px-2 py-0.5 rounded-full border transition-colors whitespace-nowrap',
+                  isAllChecked
+                    ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/40'
+                    : 'bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700'
+                )}
+              >
+                {checkedCount}/{totalCount}完了
+              </span>
+            </div>
           )}
 
           {onMoveUp && onMoveDown && (
@@ -344,21 +370,36 @@ export function CircleCard({
           {/* アイテムリスト */}
           <div className="mt-2">
             {localItems.length > 0 ? (
-              <div className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
-                {localItems.map((item) => (
-                  <ItemRow
-                    key={item.id}
-                    item={item}
-                    eventId={eventId}
-                    onToggle={(nextChecked) => {
-                      const updated = localItems.map((i) =>
-                        i.id === item.id ? { ...i, checked: nextChecked } : i
-                      );
-                      updateLocalItems(updated);
-                    }}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
+                  {localItems.map((item) => (
+                    <ItemRow
+                      key={item.id}
+                      item={item}
+                      eventId={eventId}
+                      onToggle={(nextChecked) => {
+                        const updated = localItems.map((i) =>
+                          i.id === item.id ? { ...i, checked: nextChecked } : i
+                        );
+                        updateLocalItems(updated);
+                      }}
+                    />
+                  ))}
+                </div>
+
+                {/* サークル小計サマリー */}
+                <div className="flex items-center justify-between pt-2.5 pb-0.5 px-1 border-t border-zinc-100 dark:border-zinc-800/60 text-xs text-zinc-500 dark:text-zinc-400">
+                  <span>小計 ({totalCount}点)</span>
+                  <span className="font-bold text-zinc-900 dark:text-zinc-100">
+                    ¥{totalAmount.toLocaleString()}
+                    {checkedAmount > 0 && checkedAmount !== totalAmount && (
+                      <span className="ml-1 text-[11px] font-normal text-emerald-600 dark:text-emerald-400">
+                        (済 ¥{checkedAmount.toLocaleString()})
+                      </span>
+                    )}
+                  </span>
+                </div>
+              </>
             ) : (
               <p className="py-3 text-center text-xs text-zinc-400 dark:text-zinc-500">
                 お品書き（アイテム）がまだ追加されていません
