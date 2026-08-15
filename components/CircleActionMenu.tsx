@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { updateCircle, deleteCircle } from '@/app/actions/circles';
+import { updateCircle, deleteCircle, toggleCircleExcluded } from '@/app/actions/circles';
 import { compressImage } from '@/lib/image-compression';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,7 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { MoreHorizontal, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { MoreHorizontal, Pencil, Trash2, Loader2, Ban } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CircleActionMenuProps {
@@ -43,6 +43,7 @@ interface CircleActionMenuProps {
     memo: string | null;
     avatarPath?: string | null;
     priority?: string | null;
+    isExcluded?: boolean;
   };
   eventId: string;
 }
@@ -101,6 +102,15 @@ export function CircleActionMenu({ circle, eventId }: CircleActionMenuProps) {
     });
   };
 
+  const handleToggleExclude = () => {
+    startTransition(async () => {
+      const result = await toggleCircleExcluded(circle.id, eventId, !circle.isExcluded);
+      if (!result.ok) {
+        alert(result.error || '状態の更新に失敗しました');
+      }
+    });
+  };
+
   return (
     <>
       <DropdownMenu>
@@ -119,6 +129,13 @@ export function CircleActionMenu({ circle, eventId }: CircleActionMenuProps) {
           >
             <Pencil className="mr-2 h-3.5 w-3.5" />
             編集
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={handleToggleExclude}
+            className="cursor-pointer text-xs font-medium text-zinc-700 dark:text-zinc-300"
+          >
+            <Ban className="mr-2 h-3.5 w-3.5" />
+            {circle.isExcluded ? '対象外を解除' : '対象外としてマーク'}
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => setIsDeleteDialogOpen(true)}
