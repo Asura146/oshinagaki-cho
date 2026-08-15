@@ -84,20 +84,24 @@ export function CircleListContainer({
     return items.length > 0 && items.every((i) => i.checked);
   };
 
-  const isFiltering = selectedPriorities.length < 3 || hideCompleted;
+  const isPriorityFiltering = selectedPriorities.length < 3;
+  const isFiltering = isPriorityFiltering || hideCompleted;
 
-  const filteredList = list.filter((circle) => {
+  const priorityFilteredList = list.filter((circle) => {
     const p = circle.priority || 'medium';
-    if (!selectedPriorities.includes(p)) return false;
+    return selectedPriorities.includes(p);
+  });
+
+  const filteredList = priorityFilteredList.filter((circle) => {
     if (hideCompleted && isCircleCompleted(circle.id)) return false;
     return true;
   });
 
-  // 集計計算 (絞り込み時は表示中のサークルを対象に集計、全表示時は予定外購入も含めて全体集計)
+  // 集計計算 (完了非表示は集計から除外せず、優先度絞り込みのみを集計に反映させる)
   let totalBudget = 0;
   let spentBudget = 0;
 
-  filteredList.forEach((circle) => {
+  priorityFilteredList.forEach((circle) => {
     const items = itemsRecord[circle.id] || [];
     items.forEach((item) => {
       const itemTotal = item.price * item.qty;
@@ -108,14 +112,12 @@ export function CircleListContainer({
     });
   });
 
-  // 絞り込みをしていない通常時は、突発購入も全体の集計に加算
-  if (!isFiltering) {
-    (unplannedPurchasesRecord || []).forEach((p) => {
-      const pTotal = p.price * p.qty;
-      totalBudget += pTotal;
-      spentBudget += pTotal;
-    });
-  }
+  // 突発購入（予定外購入）はフィルター状態に関わらず常に加算する
+  (unplannedPurchasesRecord || []).forEach((p) => {
+    const pTotal = p.price * p.qty;
+    totalBudget += pTotal;
+    spentBudget += pTotal;
+  });
 
   const handleMove = (index: number, direction: 'up' | 'down') => {
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
@@ -180,7 +182,7 @@ export function CircleListContainer({
           </div>
           <div className="border-x border-zinc-200/60 text-center dark:border-zinc-800/60">
             <span className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
-              予定合計 {isFiltering && <span className="text-amber-600 dark:text-amber-400">(絞込)</span>}
+              予定合計 {isPriorityFiltering && <span className="text-amber-600 dark:text-amber-400">(絞込)</span>}
             </span>
             <span className="mt-1 block text-lg font-bold text-zinc-900 dark:text-zinc-100 transition-all duration-200">
               ¥{totalBudget.toLocaleString()}
@@ -188,7 +190,7 @@ export function CircleListContainer({
           </div>
           <div className="text-center relative">
             <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
-              購入済み {isFiltering && <span className="text-amber-600 dark:text-amber-400">(絞込)</span>}
+              購入済み {isPriorityFiltering && <span className="text-amber-600 dark:text-amber-400">(絞込)</span>}
               {isPending && (
                 <Loader2 className="h-2.5 w-2.5 animate-spin text-emerald-600 dark:text-emerald-400" />
               )}
