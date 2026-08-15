@@ -38,6 +38,7 @@ interface CircleListContainerProps {
     memo: string | null;
     avatarPath: string | null;
     priority?: string | null;
+    isExcluded: boolean;
     orderIndex: number;
   }>;
   circleItemsMap: Record<string, Item[]>;
@@ -102,6 +103,8 @@ export function CircleListContainer({
   let spentBudget = 0;
 
   priorityFilteredList.forEach((circle) => {
+    if (circle.isExcluded) return; // 対象外のサークルは集計から完全に除外する
+
     const items = itemsRecord[circle.id] || [];
     items.forEach((item) => {
       const itemTotal = item.price * item.qty;

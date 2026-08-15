@@ -61,6 +61,7 @@ async function EventDataFetcher({ eventId, userId }: { eventId: string; userId: 
     twitterId: c.twitterId,
     space: c.space,
     avatarPath: c.hasBase64Avatar ? `/api/images/avatars/${c.id}` : c.avatarUrl,
+    isExcluded: c.isExcluded,
     memo: c.memo,
     priority: c.priority,
     orderIndex: c.orderIndex,

@@ -42,6 +42,7 @@ interface CircleCardProps {
     memo: string | null;
     avatarPath: string | null;
     priority?: string | null;
+    isExcluded?: boolean;
   };
   eventId: string;
   items: Item[];
@@ -163,7 +164,8 @@ export function CircleCard({
     <div
       className={cn(
         'overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900 transition-all duration-200',
-        isAllChecked && 'bg-zinc-200 dark:bg-zinc-950/40'
+        isAllChecked && 'bg-zinc-200 dark:bg-zinc-950/40',
+        circle.isExcluded && 'opacity-60 grayscale'
       )}
     >
       {/* サークルヘッダー (全体クリックで展開・折りたたみ) */}
@@ -229,6 +231,12 @@ export function CircleCard({
                 <span className="inline-flex items-center shrink-0 rounded border border-zinc-200 bg-zinc-100 px-1.5 sm:px-2 py-0.5 text-[11px] sm:text-xs font-semibold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
                   <MapPin className="mr-0.5 sm:mr-1 h-3 w-3 shrink-0" />
                   {circle.space}
+                </span>
+              )}
+
+              {circle.isExcluded && (
+                <span className="inline-flex items-center shrink-0 rounded border border-zinc-300 bg-zinc-200 px-1.5 py-0.5 text-[10px] font-bold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
+                  対象外
                 </span>
               )}
 
