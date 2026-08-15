@@ -5,10 +5,11 @@ import { reorderCircles } from '@/app/actions/circles';
 import { CircleCard } from '@/components/CircleCard';
 import { ReorderCirclesDialog } from '@/components/ReorderCirclesDialog';
 import { Button } from '@/components/ui/button';
-import { ArrowUpDown, Loader2, Calendar, Store } from 'lucide-react';
+import { ArrowUpDown, Loader2, Calendar, Store, Users, Map } from 'lucide-react';
 import { CreateCircleDialog } from '@/components/CreateCircleDialog';
 import { CreateUnplannedPurchaseDialog } from '@/components/CreateUnplannedPurchaseDialog';
 import { UnplannedPurchaseList, UnplannedPurchaseItem } from '@/components/UnplannedPurchaseList';
+import { EventMapDialog, EventMap } from '@/components/EventMapDialog';
 
 interface Item {
   id: string;
@@ -44,6 +45,7 @@ interface CircleListContainerProps {
   circleItemsMap: Record<string, Item[]>;
   circleOshinagakiImagesMap: Record<string, OshinagakiImage[]>;
   unplannedPurchases?: UnplannedPurchaseItem[];
+  eventMaps: EventMap[];
 }
 
 export function CircleListContainer({
@@ -53,6 +55,7 @@ export function CircleListContainer({
   circleItemsMap,
   circleOshinagakiImagesMap,
   unplannedPurchases = [],
+  eventMaps,
 }: CircleListContainerProps) {
   const [isPending, startTransition] = useTransition();
   const [list, setList] = useState(circleList);
@@ -97,6 +100,8 @@ export function CircleListContainer({
     if (hideCompleted && isCircleCompleted(circle.id)) return false;
     return true;
   });
+
+  const totalCircles = list.length;
 
   // 集計計算 (完了非表示は集計から除外せず、優先度絞り込みのみを集計に反映させる)
   let totalBudget = 0;
@@ -155,22 +160,34 @@ export function CircleListContainer({
   return (
     <div className="space-y-6 sm:space-y-8">
       {/* イベントヘッダーカード (基本情報 + 集計サマリー) */}
-      <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-            {event.name}
-          </h1>
-          {event.eventDate && (
-            <div className="flex items-center text-xs text-zinc-500 dark:text-zinc-400">
-              <Calendar className="mr-1.5 h-3.5 w-3.5" />
-              <span>開催日: {event.eventDate}</span>
+      <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+          <div className="flex flex-col gap-2">
+            <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+              {event.name}
+            </h1>
+            
+            <div className="flex items-center gap-4 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+              {event.eventDate && (
+                <span className="flex items-center">
+                  <Calendar className="mr-1.5 h-3.5 w-3.5" />
+                  開催日: {event.eventDate}
+                </span>
+              )}
+              <span className="flex items-center">
+                <Users className="mr-1.5 h-3.5 w-3.5" />
+                {totalCircles} サークル
+              </span>
             </div>
-          )}
-          {event.memo && (
-            <p className="mt-1 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-              {event.memo}
-            </p>
-          )}
+            
+            {event.memo && (
+              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
+                {event.memo}
+              </p>
+            )}
+          </div>
+          
+          <EventMapDialog eventId={eventId} eventMaps={eventMaps} />
         </div>
 
         {/* 集計サマリー (即時楽観的更新対応) */}
