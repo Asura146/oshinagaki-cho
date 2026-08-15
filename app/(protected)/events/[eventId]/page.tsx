@@ -3,8 +3,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/db';
-import { events, circles } from '@/lib/db/schema';
-import { eq, and, asc, desc } from 'drizzle-orm';
+import { events, circles, oshinagakiImages } from '@/lib/db/schema';
+import { eq, and, asc, desc, sql } from 'drizzle-orm';
 import { ArrowLeft } from 'lucide-react';
 import { CircleListContainer } from '@/components/CircleListContainer';
 import { unplannedPurchases } from '@/lib/db/schema';
@@ -22,9 +22,24 @@ async function EventDataFetcher({ eventId, userId }: { eventId: string; userId: 
     with: {
       circles: {
         orderBy: [asc(circles.orderIndex), asc(circles.createdAt)],
+        columns: {
+          avatarPath: false,
+        },
+        extras: {
+          hasBase64Avatar: sql<boolean>`left(${circles.avatarPath}, 5) = 'data:'`.as('has_base64_avatar'),
+          avatarUrl: sql<string>`case when left(${circles.avatarPath}, 5) = 'data:' then null else ${circles.avatarPath} end`.as('avatar_url'),
+        },
         with: {
           items: true,
-          oshinagakiImages: true,
+          oshinagakiImages: {
+            columns: {
+              storagePath: false,
+            },
+            extras: {
+              hasBase64Image: sql<boolean>`left(${oshinagakiImages.storagePath}, 5) = 'data:'`.as('has_base64_image'),
+              storageUrl: sql<string>`case when left(${oshinagakiImages.storagePath}, 5) = 'data:' then null else ${oshinagakiImages.storagePath} end`.as('storage_url'),
+            },
+          },
         },
       },
       unplannedPurchases: {
@@ -45,7 +60,7 @@ async function EventDataFetcher({ eventId, userId }: { eventId: string; userId: 
     name: c.name,
     twitterId: c.twitterId,
     space: c.space,
-    avatarPath: c.avatarPath,
+    avatarPath: c.hasBase64Avatar ? `/api/images/avatars/${c.id}` : c.avatarUrl,
     memo: c.memo,
     priority: c.priority,
     orderIndex: c.orderIndex,
@@ -54,11 +69,18 @@ async function EventDataFetcher({ eventId, userId }: { eventId: string; userId: 
   }));
 
   const circleItemsMap: Record<string, typeof fetchedCircles[number]['items']> = {};
-  const circleOshinagakiImagesMap: Record<string, typeof fetchedCircles[number]['oshinagakiImages']> = {};
+  const circleOshinagakiImagesMap: Record<string, Array<{ id: string; storagePath: string; orderIndex: number; createdAt: Date }>> = {};
   
   fetchedCircles.forEach((circle) => {
     circleItemsMap[circle.id] = circle.items;
-    circleOshinagakiImagesMap[circle.id] = circle.oshinagakiImages;
+    circleOshinagakiImagesMap[circle.id] = (circle.oshinagakiImages || []).map((img) => ({
+      id: img.id,
+      orderIndex: img.orderIndex,
+      createdAt: img.createdAt,
+      storagePath: img.hasBase64Image
+        ? `/api/images/oshinagaki/${img.id}`
+        : img.storageUrl,
+    }));
   });
 
   return (
